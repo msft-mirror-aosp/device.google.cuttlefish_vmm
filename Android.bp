@@ -13,6 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO add arm version
+cc_prebuilt_binary {
+    name: "crosvm",
+    srcs: ["x86_64/bin/crosvm"],
+    defaults: ["cuttlefish_host_only"],
+}
+
 cc_prebuilt_binary {
     name: "extract-vmlinux",
     srcs: ["scripts/extract-vmlinux"],
