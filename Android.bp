@@ -19,9 +19,3 @@ cc_prebuilt_binary {
     srcs: ["x86_64/bin/crosvm"],
     defaults: ["cuttlefish_host_only"],
 }
-
-cc_prebuilt_binary {
-    name: "extract-vmlinux",
-    srcs: ["scripts/extract-vmlinux"],
-    defaults: ["cuttlefish_host_only"],
-}
