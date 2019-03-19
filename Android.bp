@@ -19,3 +19,31 @@ cc_prebuilt_binary {
     srcs: ["x86_64/bin/crosvm"],
     defaults: ["cuttlefish_host_only"],
 }
+
+cc_prebuilt_library_shared {
+  name: "libepoxy-for-crosvm",
+  srcs: ["x86_64/lib64/crosvm/libepoxy.so.0"],
+  relative_install_path: "crosvm",
+  defaults: ["cuttlefish_host_only"],
+}
+
+cc_prebuilt_library_shared {
+  name: "libgbm-for-crosvm",
+  srcs: ["x86_64/lib64/crosvm/libgbm.so.1"],
+  relative_install_path: "crosvm",
+  defaults: ["cuttlefish_host_only"],
+}
+
+cc_prebuilt_library_shared {
+  name: "libminijail-for-crosvm",
+  srcs: ["x86_64/lib64/crosvm/libminijail.so"],
+  relative_install_path: "crosvm",
+  defaults: ["cuttlefish_host_only"],
+}
+
+cc_prebuilt_library_shared {
+  name: "libvirglrenderer-for-crosvm",
+  srcs: ["x86_64/lib64/crosvm/libvirglrenderer.so.0"],
+  relative_install_path: "crosvm",
+  defaults: ["cuttlefish_host_only"],
+}
