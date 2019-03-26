@@ -1,0 +1,7 @@
+./build/third_party/minijail https://android.googlesource.com/platform/external/minijail 29c72343333ef5218d5ed3cdab2ab21e51458056
+./build/third_party/virglrenderer https://android.googlesource.com/platform/external/virglrenderer 9f67d5e5d69d3821ebcf0cf6388a3276894210f7
+./build/third_party/libepoxy https://github.com/anholt/libepoxy.git 707f50e680ab4f1861b1e54ca6e2907aaca56c12
+./build/third_party/minigbm https://android.googlesource.com/platform/external/minigbm 6ac299f3d3fe2220a73442372616496dc97b652a
+./build/third_party/adhd https://android.googlesource.com/platform/external/adhd 0cfcc3861631250743adac893b84ad0e5255ff02
+./build/platform/crosvm https://chromium.googlesource.com/chromiumos/platform/crosvm cb5573ba198ddfaa2f41ce72a8de95a75f0393f2
+./.cargo/registry/index/github.com-1ecc6299db9ec823  HEAD
