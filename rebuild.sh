@@ -76,10 +76,6 @@ main() {
   gcloud compute disks describe \
     "${project_zone_flags[@]}" "${FLAGS_build_instance}" | \
       grep ^sourceImage: > x86_64/builder_image.txt
-  gcloud compute ssh "${SSH_FLAGS[@]}" \
-    "${project_zone_flags[@]}" \
-    "${FLAGS_build_user}@${FLAGS_build_instance}" -- dpkg -l > \
-      x86_64/builder-packages.txt
   exit 0
   gcloud compute instances delete -q \
     "${project_zone_flags[@]}" \
