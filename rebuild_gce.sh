@@ -72,11 +72,10 @@ ln -s "${HOME}" "${HOME}/usr"
 DESTDIR="${HOME}" make -j install
 cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
 
-# TODO(b/129364579): add as 3p depenedency
 cd "${THIRD_PARTY_ROOT}"
 set -x
 # New libepoxy has EGL_KHR_DEBUG entry points needed by crosvm.
-git clone https://github.com/anholt/libepoxy.git
+git clone https://android.googlesource.com/platform/external/libepoxy
 cd libepoxy
 git checkout 707f50e680ab4f1861b1e54ca6e2907aaca56c12
 ./autogen.sh --prefix="${HOME}"
@@ -133,8 +132,8 @@ git clone https://android.googlesource.com/platform/external/adhd \
 
 mkdir -p "${BUILD_DIR}/platform"
 cd "${BUILD_DIR}/platform"
-# TODO(b/129365885): add as 3p depenedency
-git clone https://chromium.googlesource.com/chromiumos/platform/crosvm || true
+git clone https://android.googlesource.com/platform/external/crosvm \
+  -b upstream-master
 
 cd "${BUILD_DIR}/platform/crosvm"
 
