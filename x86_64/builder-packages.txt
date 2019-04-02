@@ -50,9 +50,9 @@ git-man	1:2.11.0-3+deb9u4
 gnupg	2.1.18-8~deb9u4
 gnupg-agent	2.1.18-8~deb9u4
 google-cloud-packages-archive-keyring	1.2-1
-google-cloud-sdk	237.0.0-0
+google-cloud-sdk	240.0.0-0
 google-compute-engine	2.8.13-1
-google-compute-engine-oslogin	1.5.0-1
+google-compute-engine-oslogin	1.5.1-1
 gpgv	2.1.18-8~deb9u4
 grep	2.27-2
 groff-base	1.22.3-9
