@@ -2,9 +2,9 @@
 
 ARCH="$(uname -m)"
 pushd "$(dirname "$0")" > /dev/null 2>&1
-OUT_DIR="$(pwd)/${ARCH}"
+OUT_DIR="$(pwd)/${ARCH}-linux-gnu"
 popd > /dev/null 2>&1
-LIB_PATH="${OUT_DIR}/lib64/crosvm"
+LIB_PATH="${OUT_DIR}/lib"
 mkdir -p "${LIB_PATH}"
 
 BUILD_DIR=${HOME}/build
@@ -44,8 +44,8 @@ sudo apt-get install -y \
 
 export RUST_VERSION=1.32.0 RUSTFLAGS='--cfg hermetic'
 
-curl -LO "https://static.rust-lang.org/rustup/archive/1.14.0/x86_64-unknown-linux-gnu/rustup-init"
-echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
+curl -LO "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
+# echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
 chmod +x rustup-init
 ./rustup-init -y --no-modify-path --default-toolchain $RUST_VERSION
 source $HOME/.cargo/env
@@ -137,13 +137,12 @@ git clone https://android.googlesource.com/platform/external/crosvm \
 
 cd "${BUILD_DIR}/platform/crosvm"
 
-RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN/../lib64/crosvm -C link-arg=-L${HOME}/lib" \
+RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
   cargo build --features gpu
 
 # Save the outputs
-mkdir -p "${OUT_DIR}"
+mkdir -p "${OUT_DIR}/bin"
 cp Cargo.lock "${OUT_DIR}"
-mkdir -p "${OUT_DIR}/bin/"
 cp target/debug/crosvm "${OUT_DIR}/bin/"
 
 

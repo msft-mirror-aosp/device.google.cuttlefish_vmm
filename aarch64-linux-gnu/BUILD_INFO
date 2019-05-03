@@ -1,0 +1,9 @@
+./src/qemu https://salsa.debian.org/qemu-team/qemu.git c0f9358f2b1adcdc0e29c3d875717391b58fcfc3
+./build/platform/crosvm https://android.googlesource.com/platform/external/crosvm ef89b9738700a2ca0cffd0a2708dc26e9ecb4e5e
+./build/third_party/adhd https://android.googlesource.com/platform/external/adhd a63e8f3a9b65311f4de99805a9aecd5394b35940
+./build/third_party/minijail https://android.googlesource.com/platform/external/minijail 255a8e2879edb49f395f819e2f8590b40a8284ed
+./build/third_party/virglrenderer https://android.googlesource.com/platform/external/virglrenderer 9aa833bafd37839498c40312033b3cee3f6fdf82
+./build/third_party/libepoxy https://android.googlesource.com/platform/external/libepoxy 707f50e680ab4f1861b1e54ca6e2907aaca56c12
+./build/third_party/minigbm https://android.googlesource.com/platform/external/minigbm 5ff0cfd262c4660afbb8edc90719f4a3c2e32b0c
+./android-cuttlefish https://github.com/google/android-cuttlefish.git 996758314fbc6b9cb92cc69e9a7a0df6ffe55616
+./.cargo/registry/index/github.com-1ecc6299db9ec823  HEAD
