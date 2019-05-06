@@ -9,9 +9,10 @@
 # The instance will need --scope compute-rw
 
 source "${ANDROID_BUILD_TOP}/external/shflags/src/shflags"
+DIR="${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
 
 DEFINE_string build_instance \
-  "${USER}-build" "Instance name to create for the build" "i"
+  "${USER}-build-arm" "Instance name to create for the build" "i"
 DEFINE_string build_user cuttlefish_crosvm_builder \
   "User name to use on GCE when doing the build"
 DEFINE_string project "$(gcloud config get-value project)" "Project to use" "p"
@@ -35,7 +36,7 @@ main() {
   set -o errexit
   set -x
   fail=0
-  source_files=(rebuild_gce.sh)
+  source_files=("${DIR}"/rebuild_gce.sh)
   if [[ -z "${FLAGS_project}" ]]; then
     echo Must specify project 1>&2
     fail=1
@@ -49,17 +50,20 @@ main() {
   fi
   project_zone_flags=(--project="${FLAGS_project}" --zone="${FLAGS_zone}")
   delete_instances=("${FLAGS_build_instance}")
+  if false; then
   gcloud compute instances delete -q \
     "${project_zone_flags[@]}" \
     "${delete_instances[@]}" || \
       echo Not running
   gcloud compute instances create \
     "${project_zone_flags[@]}" \
+    --boot-disk-size=200GB \
     --machine-type=n1-standard-4 \
     --image-family="${FLAGS_source_image_family}" \
     --image-project="${FLAGS_source_image_project}" \
     "${FLAGS_build_instance}"
   wait_for_instance "${FLAGS_build_instance}"
+  fi
   # beta for the --internal-ip flag that may be passed via SSH_FLAGS
   gcloud beta compute scp "${SSH_FLAGS[@]}" \
     "${project_zone_flags[@]}" \
@@ -75,7 +79,7 @@ main() {
     "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
   gcloud compute disks describe \
     "${project_zone_flags[@]}" "${FLAGS_build_instance}" | \
-      grep ^sourceImage: > x86_64/builder_image.txt
+      grep ^sourceImage: > "${DIR}"/x86_64/builder_image.txt
   exit 0
   gcloud compute instances delete -q \
     "${project_zone_flags[@]}" \
