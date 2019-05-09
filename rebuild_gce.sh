@@ -114,7 +114,17 @@ compile() {
   cd "${THIRD_PARTY_ROOT}/minigbm"
   # The gbm used by upstream linux distros is not compatible with crosvm, which must use Chrome OS's
   # minigbm.
-  DESTDIR="${HOME}" make -j install
+  local cpp_flags=()
+  local make_flags=()
+  local minigbm_drv=(${MINIGBM_DRV})
+  for drv in "${minigbm_drv[@]}"; do
+    cpp_flags+=(-D"DRV_${drv}")
+    make_flags+=("DRV_${drv}"=1)
+  done
+  DESTDIR="${HOME}" make -j install \
+    "${make_flags[@]}" \
+    CPPFLAGS="${cpp_flags[*]}" \
+    PKG_CONFIG=pkg-config
   cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
 
   cd "${THIRD_PARTY_ROOT}/libepoxy"
@@ -195,7 +205,7 @@ primary_build() {
   prepare_cargo
   prepare_source
   save_source
-  compile
+  MINIGBM_DRV="I915 RADEON VC4" compile
 }
 
 secondary_build() {
@@ -204,7 +214,7 @@ secondary_build() {
   restore_source
   prepare_cargo
   save_source
-  compile
+  MINIGBM_DRV="RADEON VC4" compile
 }
 
 retry() {

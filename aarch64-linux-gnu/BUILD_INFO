@@ -1,9 +1,9 @@
 ./src/qemu https://salsa.debian.org/qemu-team/qemu.git c0f9358f2b1adcdc0e29c3d875717391b58fcfc3
-./build/platform/crosvm https://android.googlesource.com/platform/external/crosvm bbd24c5a83014807c8c03aac93d06e9f7d81181c
-./build/third_party/adhd https://android.googlesource.com/platform/external/adhd d410c13e24e855aac4275068565e9112ba91f7ad
-./build/third_party/minijail https://android.googlesource.com/platform/external/minijail 2d69add25d14459e3ef21f3f96b58b3b2bc8882e
+./build/platform/crosvm https://android.googlesource.com/platform/external/crosvm ac83a5996c41c458e2c4bf98d3b3cf1857c92653
+./build/third_party/adhd https://android.googlesource.com/platform/external/adhd d93f1994437a1c85565f01c64ad53eafd0b10971
+./build/third_party/minijail https://android.googlesource.com/platform/external/minijail 7b094ba768d1be344cc72795065354a86e4e645e
 ./build/third_party/virglrenderer https://android.googlesource.com/platform/external/virglrenderer ef72ec3c909204cd620fd67e9131744d1f4ea97d
 ./build/third_party/libepoxy https://android.googlesource.com/platform/external/libepoxy 707f50e680ab4f1861b1e54ca6e2907aaca56c12
 ./build/third_party/minigbm https://android.googlesource.com/platform/external/minigbm 055a6aa3e8274e6689740acc5eb7a4250e05edaa
-./android-cuttlefish https://github.com/google/android-cuttlefish.git 996758314fbc6b9cb92cc69e9a7a0df6ffe55616
+./android-cuttlefish https://github.com/google/android-cuttlefish.git 079d3411e534196045a39eb49393521b031540d3
 ./.cargo/registry/index/github.com-1ecc6299db9ec823  HEAD
