@@ -95,7 +95,7 @@ save_source() {
 
 restore_source() {
   rm -rf "${CHANGED_DURING_BUILD[@]}" "${OUT_DIR}"
-  tar xfvz clean-source.tgz
+  tar xfvmz clean-source.tgz
 }
 
 compile() {
@@ -186,14 +186,14 @@ compile() {
   dpkg-query -W > "${OUT_DIR}/builder-packages.txt"
 
   cd "${HOME}"
-  for i in $(find . -name .git -type d -print); do
+  for i in $(find build -name .git -type d -print); do
     dir="$(dirname "$i")"
     pushd "${dir}" > /dev/null 2>&1
     echo "${dir}" \
       "$(git remote get-url "$(git remote show)")" \
       "$(git rev-parse HEAD)"
     popd > /dev/null 2>&1
-  done > "${OUT_DIR}/BUILD_INFO"
+  done | sort > "${OUT_DIR}/BUILD_INFO"
   echo Results in ${OUT_DIR}
 }
 
