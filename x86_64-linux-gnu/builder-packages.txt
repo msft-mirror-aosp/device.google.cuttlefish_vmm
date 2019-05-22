@@ -6,7 +6,7 @@ apt-utils	1.4.9
 autoconf	2.69-10
 automake	1:1.15-6
 autotools-dev	20161112.1
-base-files	9.9+deb9u8
+base-files	9.9+deb9u9
 base-passwd	3.5.43
 bash	4.4-5
 binutils	2.28-5
@@ -65,7 +65,7 @@ git-man	1:2.11.0-3+deb9u4
 gnupg	2.1.18-8~deb9u4
 gnupg-agent	2.1.18-8~deb9u4
 google-cloud-packages-archive-keyring	1.2-1
-google-cloud-sdk	242.0.0-0
+google-cloud-sdk	246.0.0-0
 google-compute-engine	2.8.14-1
 google-compute-engine-oslogin	1.5.2-1
 gpgv	2.1.18-8~deb9u4
@@ -132,7 +132,7 @@ libdb5.3:amd64	5.3.28-12+deb9u1
 libdebconfclient0:amd64	0.227
 libdebian-dpkgcross-perl	2.6.15-1
 libdevmapper1.02.1:amd64	2:1.02.137-2
-libdns-export162	1:9.10.3.dfsg.P4-12.3+deb9u4
+libdns-export162	1:9.10.3.dfsg.P4-12.3+deb9u5
 libdpkg-perl	1.18.25
 libdrm-amdgpu1:amd64	2.4.74-1
 libdrm-dev:amd64	2.4.74-1
@@ -202,7 +202,7 @@ libio-string-perl	1.08-3
 libip4tc0:amd64	1.6.0+snapshot20161117-6
 libip6tc0:amd64	1.6.0+snapshot20161117-6
 libiptc0:amd64	1.6.0+snapshot20161117-6
-libisc-export160	1:9.10.3.dfsg.P4-12.3+deb9u4
+libisc-export160	1:9.10.3.dfsg.P4-12.3+deb9u5
 libisl15:amd64	0.18-1
 libitm1:amd64	6.3.0-18+deb9u1
 libjson-c3:amd64	0.12.1-1.1
@@ -256,7 +256,7 @@ libpciaccess0:amd64	0.13.4-1+b2
 libpcre3:amd64	2:8.39-3
 libperl5.24:amd64	5.24.1-3+deb9u5
 libpipeline1:amd64	1.4.1-2
-libpng16-16:amd64	1.6.28-1
+libpng16-16:amd64	1.6.28-1+deb9u1
 libpopt0:amd64	1.16-10+b2
 libprocps6:amd64	2:3.3.12-3+deb9u1
 libprotobuf10:amd64	3.0.0-9
@@ -373,9 +373,9 @@ libxxf86vm1:amd64	1:1.1.4-1+b2
 libyaml-libyaml-perl	0.63-2
 libyaml-perl	1.21-1
 linux-base	4.5
-linux-image-4.9.0-8-amd64	4.9.144-3.1
-linux-image-amd64	4.9+80+deb9u6
-linux-libc-dev:amd64	4.9.168-1
+linux-image-4.9.0-9-amd64	4.9.168-1+deb9u2
+linux-image-amd64	4.9+80+deb9u7
+linux-libc-dev:amd64	4.9.168-1+deb9u2
 linux-libc-dev-armhf-cross	4.9.25-1cross1
 locales	2.24-11+deb9u4
 login	1:4.4-4.1
