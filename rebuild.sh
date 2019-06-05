@@ -75,7 +75,7 @@ main() {
     gcloud compute ssh "${SSH_FLAGS[@]}" \
       "${project_zone_flags[@]}" \
       "${FLAGS_x86_user}@${FLAGS_x86_instance}" -- \
-        ./rebuild_gce.sh
+        ./rebuild_gce.sh prepare_source x86_64_build
     gcloud beta compute scp --recurse "${SSH_FLAGS[@]}" \
       "${project_zone_flags[@]}" \
       "${FLAGS_x86_user}@${FLAGS_x86_instance}":x86_64-linux-gnu \
@@ -93,8 +93,9 @@ main() {
       "${source_files[@]}" \
       "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/clean-source.tgz" \
       "${FLAGS_arm_user}@${FLAGS_arm_system}:"
+    # We're using the source tarball from the x86_64 build
     ssh -t "${FLAGS_arm_user}@${FLAGS_arm_system}" -- \
-        ./rebuild_gce.sh secondary_build
+        ./rebuild_gce.sh restore_source arm64_build
     scp -r "${FLAGS_arm_user}@${FLAGS_arm_system}":aarch64-linux-gnu \
       "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
   fi
