@@ -1,6 +1,6 @@
-build/platform/crosvm https://android.googlesource.com/platform/external/crosvm 3007ff3cf408f9e6a2e0731a4fa7d6f8f65dfa47
-build/third_party/adhd https://android.googlesource.com/platform/external/adhd 412caaeb4943476009b69e699228b09e2dfe5327
-build/third_party/libepoxy https://android.googlesource.com/platform/external/libepoxy 707f50e680ab4f1861b1e54ca6e2907aaca56c12
-build/third_party/minigbm https://android.googlesource.com/platform/external/minigbm 01c40149a273192f0f4051c16e3b639deb5e80b9
-build/third_party/minijail https://android.googlesource.com/platform/external/minijail 7b094ba768d1be344cc72795065354a86e4e645e
-build/third_party/virglrenderer https://android.googlesource.com/platform/external/virglrenderer 7d7b0fb7694147b435f74b078c09be2332eb80d1
+build/platform/crosvm https://android.googlesource.com/platform/external/crosvm 3bebfa29dc4185b2f3d2752ac16b0f6639548a4a
+build/third_party/adhd https://android.googlesource.com/platform/external/adhd e2fb5cafd9fe7075c3c1b9ea1eecca635663c129
+build/third_party/libepoxy https://android.googlesource.com/platform/external/libepoxy d536f78db81853b18ffc733af8a1474e9ca08950
+build/third_party/minigbm https://android.googlesource.com/platform/external/minigbm 39490e9e3f664d6d0dd80cbd1f7c7387ec5fa39f
+build/third_party/minijail https://android.googlesource.com/platform/external/minijail 1f5d095bb0d2225343731bd402026ed15e4a44e0
+build/third_party/virglrenderer https://android.googlesource.com/platform/external/virglrenderer d7787808c8359cd5a13c5f5de9303f8e4d4375ad
