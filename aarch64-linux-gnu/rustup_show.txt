@@ -1,15 +1,4 @@
 Default host: aarch64-unknown-linux-gnu
 
-installed toolchains
---------------------
-
-1.32.0-aarch64-unknown-linux-gnu
-1.33.0-aarch64-unknown-linux-gnu
-1.35.0-aarch64-unknown-linux-gnu
-
-active toolchain
-----------------
-
 1.35.0-aarch64-unknown-linux-gnu (overridden by '/home/vsoc-01/build/platform/crosvm/rust-toolchain')
 rustc 1.35.0 (3c235d560 2019-05-20)
-
