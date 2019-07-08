@@ -65,9 +65,9 @@ git-man	1:2.11.0-3+deb9u4
 gnupg	2.1.18-8~deb9u4
 gnupg-agent	2.1.18-8~deb9u4
 google-cloud-packages-archive-keyring	1.2-1
-google-cloud-sdk	246.0.0-0
-google-compute-engine	2.8.14-1
-google-compute-engine-oslogin	1.5.2-1
+google-cloud-sdk	251.0.0-0
+google-compute-engine	2.8.16-1
+google-compute-engine-oslogin	1.5.3-1
 gpgv	2.1.18-8~deb9u4
 grep	2.27-2
 groff-base	1.22.3-9
@@ -286,8 +286,8 @@ libsmartcols1:amd64	2.29.2-1+deb9u1
 libsqlite3-0:amd64	3.16.2-5+deb9u1
 libss2:amd64	1.43.4-2
 libssh2-1:amd64	1.7.0-1+deb9u1
-libssl1.0-dev:amd64	1.0.2r-1~deb9u1
-libssl1.0.2:amd64	1.0.2r-1~deb9u1
+libssl1.0-dev:amd64	1.0.2s-1~deb9u1
+libssl1.0.2:amd64	1.0.2s-1~deb9u1
 libssl1.1:amd64	1.1.0j-1~deb9u1
 libstdc++-6-dev:amd64	6.3.0-18+deb9u1
 libstdc++-6-dev-arm64-cross	6.3.0-18cross1
@@ -374,9 +374,9 @@ libxxf86vm1:amd64	1:1.1.4-1+b2
 libyaml-libyaml-perl	0.63-2
 libyaml-perl	1.21-1
 linux-base	4.5
-linux-image-4.9.0-9-amd64	4.9.168-1+deb9u2
+linux-image-4.9.0-9-amd64	4.9.168-1+deb9u3
 linux-image-amd64	4.9+80+deb9u7
-linux-libc-dev:amd64	4.9.168-1+deb9u2
+linux-libc-dev:amd64	4.9.168-1+deb9u3
 linux-libc-dev-arm64-cross	4.9.25-1cross1
 locales	2.24-11+deb9u4
 login	1:4.4-4.1
@@ -420,7 +420,7 @@ python-apt-common	1.4.0~beta3
 python-boto	2.44.0-1
 python-chardet	2.3.0-2
 python-crcmod	1.7-2+b2
-python-google-compute-engine	2.8.14-1
+python-google-compute-engine	2.8.16-1
 python-minimal	2.7.13-2
 python-pkg-resources	33.1.1-1
 python-requests	2.12.4-1
@@ -433,7 +433,7 @@ python3-apt	1.4.0~beta3
 python3-boto	2.44.0-1
 python3-chardet	2.3.0-2
 python3-distro	1.0.1-2
-python3-google-compute-engine	2.8.14-1
+python3-google-compute-engine	2.8.16-1
 python3-minimal	3.5.3-1
 python3-pkg-resources	33.1.1-1
 python3-requests	2.12.4-1
