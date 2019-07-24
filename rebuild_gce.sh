@@ -8,21 +8,22 @@ LIB_PATH="${OUT_DIR}/lib"
 BUILD_DIR=${HOME}/build
 export THIRD_PARTY_ROOT="${BUILD_DIR}/third_party"
 export PATH="${PATH}:${HOME}/bin"
-export RUST_VERSION=1.32.0 RUSTFLAGS='--cfg hermetic'
-SOURCE_DIRS=(.cargo build)
-CHANGED_DURING_BUILD=("${SOURCE_DIRS[@]}" usr lib)
+export RUST_VERSION=1.35.0 RUSTFLAGS='--cfg hermetic'
+SOURCE_DIRS=(build)
+BUILD_OUTPUTS=(usr lib)
 
 set -o errexit
 set -x
 
 install_packages() {
-  sudo dpkg --add-architecture armhf
+  echo Installing packages...
+  sudo dpkg --add-architecture arm64
   sudo apt-get update
   sudo apt-get install -y \
       autoconf \
       automake \
       build-essential \
-      crossbuild-essential-armhf \
+      "$@" \
       curl \
       gcc \
       g++ \
@@ -46,25 +47,53 @@ install_packages() {
       xutils-dev # Needed to pacify autogen.sh for libepoxy
 }
 
+retry() {
+  for i in $(seq 5); do
+    "$@" && return 0
+    sleep 1
+  done
+  return 1
+}
+
 prepare_cargo() {
+  echo Setting up cargo...
   cd
   rm -rf .cargo
-  curl -LO "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
+  # Sometimes curl hangs. When it does, retry
+  retry curl -LO \
+    "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
   # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
   chmod +x rustup-init
   ./rustup-init -y --no-modify-path --default-toolchain $RUST_VERSION
   source $HOME/.cargo/env
-  rustup target add armv7-unknown-linux-gnueabihf
+  if [[ -n "$1" ]]; then
+    rustup target add "$1"
+  fi
   rustup component add rustfmt-preview
   rm rustup-init
 
+  if [[ -n "$1" ]]; then
   cat >>~/.cargo/config <<EOF
-[target.armv7-unknown-linux-gnueabihf]
-linker = "arm-linux-gnueabihf-gcc"
+[target.$1]
+linker = "${1/-unknown-/-}"
 EOF
+  fi
+}
+
+save_source() {
+  echo Saving source...
+  cd
+  rm -rf clean-source.tgz
+  tar cfvz clean-source.tgz "${SOURCE_DIRS[@]}"
 }
 
 prepare_source() {
+  echo Fetching source...
+  # Clean up anything that might be lurking
+  cd
+  rm -rf "${SOURCE_DIRS[@]}"
+  # Needed so we can use git
+  install_packages
   mkdir -p "${THIRD_PARTY_ROOT}"
   cd "${THIRD_PARTY_ROOT}"
   # minijail does not exist in upstream linux distros.
@@ -73,9 +102,9 @@ prepare_source() {
     -b upstream-master
   sed 's/-Wall/-Wno-maybe-uninitialized/g' -i minigbm/Makefile
   # New libepoxy has EGL_KHR_DEBUG entry points needed by crosvm.
-  git clone https://android.googlesource.com/platform/external/libepoxy
+  git clone https://android.googlesource.com/platform/external/libepoxy \
+    -b upstream-master
   cd libepoxy
-  git checkout 707f50e680ab4f1861b1e54ca6e2907aaca56c12
   cd ..
   git clone https://android.googlesource.com/platform/external/virglrenderer \
     -b upstream-master
@@ -85,21 +114,18 @@ prepare_source() {
   cd "${BUILD_DIR}/platform"
   git clone https://android.googlesource.com/platform/external/crosvm \
     -b upstream-master
-}
-
-save_source() {
-  cd
-  rm -rf clean-source.tgz
-  tar cfvz clean-source.tgz "${SOURCE_DIRS[@]}"
+  save_source
 }
 
 restore_source() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}" "${OUT_DIR}"
+  echo Unpacking source...
+  install_packages
+  rm -rf "${SOURCE_DIRS[@]}"
   tar xfvmz clean-source.tgz
 }
 
 compile() {
-  restore_source
+  echo Compiling...
   mkdir -p "${HOME}/lib" "${OUT_DIR}/bin" "${OUT_DIR}/lib"
 
   # Hack to make minigbm work
@@ -197,40 +223,48 @@ compile() {
   echo Results in ${OUT_DIR}
 }
 
-primary_build() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}"
 
-  install_packages
-
-  prepare_cargo
-  prepare_source
-  save_source
-  MINIGBM_DRV="I915 RADEON VC4" compile
-}
-
-secondary_build() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}"
-  install_packages
-  restore_source
-  prepare_cargo
-  save_source
+arm64_retry() {
   MINIGBM_DRV="RADEON VC4" compile
 }
 
-retry() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}"
-  compile
+arm64_build() {
+  rm -rf "${BUILD_OUTPUTS[@]}"
+  prepare_cargo
+  arm64_retry
 }
 
-if [[ $# -lt 1 ]]; then
-  set primary_build
+x86_64_retry() {
+  MINIGBM_DRV="I915 RADEON VC4" compile
+}
+
+x86_64_build() {
+  rm -rf "${BUILD_OUTPUTS[@]}"
+  # Cross-compilation is x86_64 specific
+  sudo apt install -y crossbuild-essential-arm64
+  prepare_cargo aarch64-unknown-linux-gnu
+  x86_64_retry
+}
+
+if [[ $# -lt 2 ]]; then
+  echo Choosing default config
+  set prepare_source x86_64_build
 fi
 
-case "$1" in
-  primary_build) primary_build ;;
-  secondary_build) secondary_build ;;
-  retry) retry ;;
-  *) echo usage: $0 'primary_build|secondary_build|retry' 1>&2
-    exit 2
-    ;;
-esac
+echo Steps: "$@"
+
+for i in "$@"; do
+  echo $i
+  case "$i" in
+    arm64_build) $i ;;
+    arm64_retry) $i ;;
+    prepare_source) $i ;;
+    restore_source) $i ;;
+    x86_64_build) $i ;;
+    x86_64_retry) $i ;;
+    *) echo $i unknown 1>&2
+      echo usage: $0 'arm64_build|arm64_retry|prepare_source|restore_source|x86_64_build|x86_64_retry ...' 1>&2
+       exit 2
+       ;;
+  esac
+done
