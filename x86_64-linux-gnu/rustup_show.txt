@@ -1,10 +1,10 @@
 Default host: x86_64-unknown-linux-gnu
 
-installed targets for active toolchain
---------------------------------------
+installed toolchains
+--------------------
 
-aarch64-unknown-linux-gnu
-x86_64-unknown-linux-gnu
+stable-x86_64-unknown-linux-gnu
+1.35.0-x86_64-unknown-linux-gnu
 
 active toolchain
 ----------------

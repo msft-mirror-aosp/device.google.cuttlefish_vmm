@@ -376,7 +376,7 @@ libyaml-perl	1.21-1
 linux-base	4.5
 linux-image-4.9.0-9-amd64	4.9.168-1+deb9u3
 linux-image-amd64	4.9+80+deb9u7
-linux-libc-dev:amd64	4.9.168-1+deb9u3
+linux-libc-dev:amd64	4.9.168-1+deb9u4
 linux-libc-dev-arm64-cross	4.9.25-1cross1
 locales	2.24-11+deb9u4
 login	1:4.4-4.1
