@@ -5,12 +5,14 @@ pushd "$(dirname "$0")" > /dev/null 2>&1
 OUT_DIR="$(pwd)/${ARCH}-linux-gnu"
 popd > /dev/null 2>&1
 LIB_PATH="${OUT_DIR}/lib"
+REPO_DIR=${HOME}/repo
 BUILD_DIR=${HOME}/build
 export THIRD_PARTY_ROOT="${BUILD_DIR}/third_party"
+export PLATFORM_ROOT="${BUILD_DIR}/platform"
 export PATH="${PATH}:${HOME}/bin"
-export RUST_VERSION=1.35.0 RUSTFLAGS='--cfg hermetic'
 SOURCE_DIRS=(build)
 BUILD_OUTPUTS=(usr lib)
+CUSTOM_MANIFEST=""
 
 set -o errexit
 set -x
@@ -45,6 +47,9 @@ install_packages() {
       protobuf-compiler \
       python3 \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
+  mkdir -p "${HOME}/bin"
+  curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+  chmod a+x ~/bin/repo
 }
 
 retry() {
@@ -64,7 +69,7 @@ prepare_cargo() {
     "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
   # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
   chmod +x rustup-init
-  ./rustup-init -y --no-modify-path --default-toolchain $RUST_VERSION
+  ./rustup-init -y --no-modify-path
   source $HOME/.cargo/env
   if [[ -n "$1" ]]; then
     rustup target add "$1"
@@ -80,13 +85,6 @@ EOF
   fi
 }
 
-save_source() {
-  echo Saving source...
-  cd
-  rm -rf clean-source.tgz
-  tar cfvz clean-source.tgz "${SOURCE_DIRS[@]}"
-}
-
 prepare_source() {
   echo Fetching source...
   # Clean up anything that might be lurking
@@ -94,34 +92,17 @@ prepare_source() {
   rm -rf "${SOURCE_DIRS[@]}"
   # Needed so we can use git
   install_packages
-  mkdir -p "${THIRD_PARTY_ROOT}"
-  cd "${THIRD_PARTY_ROOT}"
-  # minijail does not exist in upstream linux distros.
-  git clone https://android.googlesource.com/platform/external/minijail
-  git clone https://android.googlesource.com/platform/external/minigbm \
-    -b upstream-master
-  sed 's/-Wall/-Wno-maybe-uninitialized/g' -i minigbm/Makefile
-  # New libepoxy has EGL_KHR_DEBUG entry points needed by crosvm.
-  git clone https://android.googlesource.com/platform/external/libepoxy \
-    -b upstream-master
-  cd libepoxy
-  cd ..
-  git clone https://android.googlesource.com/platform/external/virglrenderer \
-    -b upstream-master
-  git clone https://android.googlesource.com/platform/external/adhd \
-    -b upstream-master
-  mkdir -p "${BUILD_DIR}/platform"
-  cd "${BUILD_DIR}/platform"
-  git clone https://android.googlesource.com/platform/external/crosvm \
-    -b upstream-master
-  save_source
-}
-
-restore_source() {
-  echo Unpacking source...
-  install_packages
-  rm -rf "${SOURCE_DIRS[@]}"
-  tar xfvmz clean-source.tgz
+  mkdir -p "${BUILD_DIR}"
+  cd "${BUILD_DIR}"
+  git config --global user.name "AOSP Crosvm Builder"
+  git config --global user.email "nobody@android.com"
+  git config --global color.ui false
+  repo init -q -b crosvm-master -u https://android.googlesource.com/platform/manifest
+  if [[ -n "${CUSTOM_MANIFEST}" ]]; then
+    cp "${HOME}/${CUSTOM_MANIFEST}" .repo/manifests
+    repo init -m "${CUSTOM_MANIFEST}"
+  fi
+  repo sync
 }
 
 compile() {
@@ -154,51 +135,20 @@ compile() {
   cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
 
   cd "${THIRD_PARTY_ROOT}/libepoxy"
-  ./autogen.sh --prefix="${HOME}"
+  if [[ ! -d m4 ]]; then
+    ./autogen.sh --prefix="${HOME}"
+  fi
   make -j install
   cp "${HOME}"/lib/libepoxy.so.0 "${LIB_PATH}"/
 
   # Note: depends on libepoxy
   cd "${THIRD_PARTY_ROOT}/virglrenderer"
-  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig --disable-glx
+  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig
   make -j install
   cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
 
-  #cd "${THIRD_PARTY_ROOT}"
-  # Install libtpm2 so that tpm2-sys/build.rs does not try to build it in place in
-  # the read-only source directory.
-  #git clone https://chromium.googlesource.com/chromiumos/third_party/tpm2 \
-  #    && cd tpm2 \
-  #    && git checkout 15260c8cd98eb10b4976d2161cd5cb9bc0c3adac \
-  #    && make -j24
-
-  # Install librendernodehost
-  #RUN git clone https://chromium.googlesource.com/chromiumos/platform2 \
-  #    && cd platform2 \
-  #    && git checkout 226fc35730a430344a68c34d7fe7d613f758f417 \
-  #    && cd rendernodehost \
-  #    && gcc -c src.c -o src.o \
-  #    && ar rcs librendernodehost.a src.o \
-  #    && cp librendernodehost.a /lib
-
-  # Inform pkg-config where libraries we install are placed.
-  #COPY pkgconfig/* /usr/lib/pkgconfig
-
-  # Reduces image size and prevents accidentally using /scratch files
-  #RUN rm -r /scratch /usr/bin/meson
-
-  # The manual installation of shared objects requires an ld.so.cache refresh.
-  #RUN ldconfig
-
-  # Pull down repositories that crosvm depends on to cros checkout-like locations.
-  #ENV CROS_ROOT=/
-  #ENV THIRD_PARTY_ROOT=$CROS_ROOT/third_party
-  #RUN mkdir -p $THIRD_PARTY_ROOT
-  #ENV PLATFORM_ROOT=$CROS_ROOT/platform
-  #RUN mkdir -p $PLATFORM_ROOT
-
   source $HOME/.cargo/env
-  cd "${BUILD_DIR}/platform/crosvm"
+  cd "${PLATFORM_ROOT}/crosvm"
 
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
     cargo build --features gpu
@@ -210,16 +160,7 @@ compile() {
   cargo --version --verbose > "${OUT_DIR}/cargo_version.txt"
   rustup show > "${OUT_DIR}/rustup_show.txt"
   dpkg-query -W > "${OUT_DIR}/builder-packages.txt"
-
-  cd "${HOME}"
-  for i in $(find build -name .git -type d -print); do
-    dir="$(dirname "$i")"
-    pushd "${dir}" > /dev/null 2>&1
-    echo "${dir}" \
-      "$(git remote get-url "$(git remote show)")" \
-      "$(git rev-parse HEAD)"
-    popd > /dev/null 2>&1
-  done | sort > "${OUT_DIR}/BUILD_INFO"
+  repo manifest -r -o ${OUT_DIR}/manifest.xml
   echo Results in ${OUT_DIR}
 }
 
@@ -246,7 +187,7 @@ x86_64_build() {
   x86_64_retry
 }
 
-if [[ $# -lt 2 ]]; then
+if [[ $# -lt 1 ]]; then
   echo Choosing default config
   set prepare_source x86_64_build
 fi
@@ -256,14 +197,14 @@ echo Steps: "$@"
 for i in "$@"; do
   echo $i
   case "$i" in
+    CUSTOM_MANIFEST=*) CUSTOM_MANIFEST="${i/CUSTOM_MANIFEST=/}" ;;
     arm64_build) $i ;;
     arm64_retry) $i ;;
     prepare_source) $i ;;
-    restore_source) $i ;;
     x86_64_build) $i ;;
     x86_64_retry) $i ;;
     *) echo $i unknown 1>&2
-      echo usage: $0 'arm64_build|arm64_retry|prepare_source|restore_source|x86_64_build|x86_64_retry ...' 1>&2
+      echo usage: $0 'arm64_build|arm64_retry|prepare_source|x86_64_build|x86_64_retry ...' 1>&2
        exit 2
        ;;
   esac
