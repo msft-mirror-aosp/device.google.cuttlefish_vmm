@@ -5,24 +5,27 @@ pushd "$(dirname "$0")" > /dev/null 2>&1
 OUT_DIR="$(pwd)/${ARCH}-linux-gnu"
 popd > /dev/null 2>&1
 LIB_PATH="${OUT_DIR}/lib"
+REPO_DIR=${HOME}/repo
 BUILD_DIR=${HOME}/build
 export THIRD_PARTY_ROOT="${BUILD_DIR}/third_party"
+export PLATFORM_ROOT="${BUILD_DIR}/platform"
 export PATH="${PATH}:${HOME}/bin"
-export RUST_VERSION=1.32.0 RUSTFLAGS='--cfg hermetic'
-SOURCE_DIRS=(.cargo build)
-CHANGED_DURING_BUILD=("${SOURCE_DIRS[@]}" usr lib)
+SOURCE_DIRS=(build)
+BUILD_OUTPUTS=(usr lib)
+CUSTOM_MANIFEST=""
 
 set -o errexit
 set -x
 
 install_packages() {
-  sudo dpkg --add-architecture armhf
+  echo Installing packages...
+  sudo dpkg --add-architecture arm64
   sudo apt-get update
   sudo apt-get install -y \
       autoconf \
       automake \
       build-essential \
-      crossbuild-essential-armhf \
+      "$@" \
       curl \
       gcc \
       g++ \
@@ -44,62 +47,66 @@ install_packages() {
       protobuf-compiler \
       python3 \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
+  mkdir -p "${HOME}/bin"
+  curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+  chmod a+x ~/bin/repo
+}
+
+retry() {
+  for i in $(seq 5); do
+    "$@" && return 0
+    sleep 1
+  done
+  return 1
 }
 
 prepare_cargo() {
+  echo Setting up cargo...
   cd
   rm -rf .cargo
-  curl -LO "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
+  # Sometimes curl hangs. When it does, retry
+  retry curl -LO \
+    "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
   # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
   chmod +x rustup-init
-  ./rustup-init -y --no-modify-path --default-toolchain $RUST_VERSION
+  ./rustup-init -y --no-modify-path
   source $HOME/.cargo/env
-  rustup target add armv7-unknown-linux-gnueabihf
+  if [[ -n "$1" ]]; then
+    rustup target add "$1"
+  fi
   rustup component add rustfmt-preview
   rm rustup-init
 
+  if [[ -n "$1" ]]; then
   cat >>~/.cargo/config <<EOF
-[target.armv7-unknown-linux-gnueabihf]
-linker = "arm-linux-gnueabihf-gcc"
+[target.$1]
+linker = "${1/-unknown-/-}"
 EOF
+  fi
 }
 
 prepare_source() {
-  mkdir -p "${THIRD_PARTY_ROOT}"
-  cd "${THIRD_PARTY_ROOT}"
-  # minijail does not exist in upstream linux distros.
-  git clone https://android.googlesource.com/platform/external/minijail
-  git clone https://android.googlesource.com/platform/external/minigbm \
-    -b upstream-master
-  sed 's/-Wall/-Wno-maybe-uninitialized/g' -i minigbm/Makefile
-  # New libepoxy has EGL_KHR_DEBUG entry points needed by crosvm.
-  git clone https://android.googlesource.com/platform/external/libepoxy
-  cd libepoxy
-  git checkout 707f50e680ab4f1861b1e54ca6e2907aaca56c12
-  cd ..
-  git clone https://android.googlesource.com/platform/external/virglrenderer \
-    -b upstream-master
-  git clone https://android.googlesource.com/platform/external/adhd \
-    -b upstream-master
-  mkdir -p "${BUILD_DIR}/platform"
-  cd "${BUILD_DIR}/platform"
-  git clone https://android.googlesource.com/platform/external/crosvm \
-    -b upstream-master
-}
-
-save_source() {
+  echo Fetching source...
+  # Clean up anything that might be lurking
   cd
-  rm -rf clean-source.tgz
-  tar cfvz clean-source.tgz "${SOURCE_DIRS[@]}"
-}
-
-restore_source() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}" "${OUT_DIR}"
-  tar xfvmz clean-source.tgz
+  rm -rf "${SOURCE_DIRS[@]}"
+  # Needed so we can use git
+  install_packages
+  mkdir -p "${BUILD_DIR}"
+  cd "${BUILD_DIR}"
+  git config --global user.name "AOSP Crosvm Builder"
+  git config --global user.email "nobody@android.com"
+  git config --global color.ui false
+  repo init -q -b crosvm-master -u https://android.googlesource.com/platform/manifest
+  if [[ -n "${CUSTOM_MANIFEST}" ]]; then
+    cp "${HOME}/${CUSTOM_MANIFEST}" .repo/manifests
+    repo init -m "${CUSTOM_MANIFEST}"
+  fi
+  repo sync
 }
 
 compile() {
-  restore_source
+  echo Compiling...
   mkdir -p "${HOME}/lib" "${OUT_DIR}/bin" "${OUT_DIR}/lib"
 
   # Hack to make minigbm work
@@ -128,51 +135,20 @@ compile() {
   cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
 
   cd "${THIRD_PARTY_ROOT}/libepoxy"
-  ./autogen.sh --prefix="${HOME}"
+  if [[ ! -d m4 ]]; then
+    ./autogen.sh --prefix="${HOME}"
+  fi
   make -j install
   cp "${HOME}"/lib/libepoxy.so.0 "${LIB_PATH}"/
 
   # Note: depends on libepoxy
   cd "${THIRD_PARTY_ROOT}/virglrenderer"
-  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig --disable-glx
+  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig
   make -j install
   cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
 
-  #cd "${THIRD_PARTY_ROOT}"
-  # Install libtpm2 so that tpm2-sys/build.rs does not try to build it in place in
-  # the read-only source directory.
-  #git clone https://chromium.googlesource.com/chromiumos/third_party/tpm2 \
-  #    && cd tpm2 \
-  #    && git checkout 15260c8cd98eb10b4976d2161cd5cb9bc0c3adac \
-  #    && make -j24
-
-  # Install librendernodehost
-  #RUN git clone https://chromium.googlesource.com/chromiumos/platform2 \
-  #    && cd platform2 \
-  #    && git checkout 226fc35730a430344a68c34d7fe7d613f758f417 \
-  #    && cd rendernodehost \
-  #    && gcc -c src.c -o src.o \
-  #    && ar rcs librendernodehost.a src.o \
-  #    && cp librendernodehost.a /lib
-
-  # Inform pkg-config where libraries we install are placed.
-  #COPY pkgconfig/* /usr/lib/pkgconfig
-
-  # Reduces image size and prevents accidentally using /scratch files
-  #RUN rm -r /scratch /usr/bin/meson
-
-  # The manual installation of shared objects requires an ld.so.cache refresh.
-  #RUN ldconfig
-
-  # Pull down repositories that crosvm depends on to cros checkout-like locations.
-  #ENV CROS_ROOT=/
-  #ENV THIRD_PARTY_ROOT=$CROS_ROOT/third_party
-  #RUN mkdir -p $THIRD_PARTY_ROOT
-  #ENV PLATFORM_ROOT=$CROS_ROOT/platform
-  #RUN mkdir -p $PLATFORM_ROOT
-
   source $HOME/.cargo/env
-  cd "${BUILD_DIR}/platform/crosvm"
+  cd "${PLATFORM_ROOT}/crosvm"
 
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
     cargo build --features gpu
@@ -184,53 +160,52 @@ compile() {
   cargo --version --verbose > "${OUT_DIR}/cargo_version.txt"
   rustup show > "${OUT_DIR}/rustup_show.txt"
   dpkg-query -W > "${OUT_DIR}/builder-packages.txt"
-
-  cd "${HOME}"
-  for i in $(find build -name .git -type d -print); do
-    dir="$(dirname "$i")"
-    pushd "${dir}" > /dev/null 2>&1
-    echo "${dir}" \
-      "$(git remote get-url "$(git remote show)")" \
-      "$(git rev-parse HEAD)"
-    popd > /dev/null 2>&1
-  done | sort > "${OUT_DIR}/BUILD_INFO"
+  repo manifest -r -o ${OUT_DIR}/manifest.xml
   echo Results in ${OUT_DIR}
 }
 
-primary_build() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}"
 
-  install_packages
-
-  prepare_cargo
-  prepare_source
-  save_source
-  MINIGBM_DRV="I915 RADEON VC4" compile
-}
-
-secondary_build() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}"
-  install_packages
-  restore_source
-  prepare_cargo
-  save_source
+arm64_retry() {
   MINIGBM_DRV="RADEON VC4" compile
 }
 
-retry() {
-  rm -rf "${CHANGED_DURING_BUILD[@]}"
-  compile
+arm64_build() {
+  rm -rf "${BUILD_OUTPUTS[@]}"
+  prepare_cargo
+  arm64_retry
+}
+
+x86_64_retry() {
+  MINIGBM_DRV="I915 RADEON VC4" compile
+}
+
+x86_64_build() {
+  rm -rf "${BUILD_OUTPUTS[@]}"
+  # Cross-compilation is x86_64 specific
+  sudo apt install -y crossbuild-essential-arm64
+  prepare_cargo aarch64-unknown-linux-gnu
+  x86_64_retry
 }
 
 if [[ $# -lt 1 ]]; then
-  set primary_build
+  echo Choosing default config
+  set prepare_source x86_64_build
 fi
 
-case "$1" in
-  primary_build) primary_build ;;
-  secondary_build) secondary_build ;;
-  retry) retry ;;
-  *) echo usage: $0 'primary_build|secondary_build|retry' 1>&2
-    exit 2
-    ;;
-esac
+echo Steps: "$@"
+
+for i in "$@"; do
+  echo $i
+  case "$i" in
+    CUSTOM_MANIFEST=*) CUSTOM_MANIFEST="${i/CUSTOM_MANIFEST=/}" ;;
+    arm64_build) $i ;;
+    arm64_retry) $i ;;
+    prepare_source) $i ;;
+    x86_64_build) $i ;;
+    x86_64_retry) $i ;;
+    *) echo $i unknown 1>&2
+      echo usage: $0 'arm64_build|arm64_retry|prepare_source|x86_64_build|x86_64_retry ...' 1>&2
+       exit 2
+       ;;
+  esac
+done
