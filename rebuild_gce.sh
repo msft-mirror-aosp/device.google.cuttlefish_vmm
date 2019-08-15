@@ -2,163 +2,210 @@
 
 ARCH="$(uname -m)"
 pushd "$(dirname "$0")" > /dev/null 2>&1
-OUT_DIR="$(pwd)/${ARCH}"
+OUT_DIR="$(pwd)/${ARCH}-linux-gnu"
 popd > /dev/null 2>&1
-LIB_PATH="${OUT_DIR}/lib64/crosvm"
-mkdir -p "${LIB_PATH}"
-
+LIB_PATH="${OUT_DIR}/lib"
+REPO_DIR=${HOME}/repo
 BUILD_DIR=${HOME}/build
 export THIRD_PARTY_ROOT="${BUILD_DIR}/third_party"
+export PLATFORM_ROOT="${BUILD_DIR}/platform"
 export PATH="${PATH}:${HOME}/bin"
-mkdir -p "${THIRD_PARTY_ROOT}"
+SOURCE_DIRS=(build)
+BUILD_OUTPUTS=(usr lib)
+CUSTOM_MANIFEST=""
 
 set -o errexit
 set -x
 
-sudo apt-get update
-sudo apt-get install -y \
-    autoconf \
-    automake \
-    curl \
-    gcc \
-    g++ \
-    git \
-    libcap-dev \
-    libdrm-dev \
-    libfdt-dev \
-    libegl1-mesa-dev \
-    libgl1-mesa-dev \
-    libgles1-mesa-dev \
-    libgles2-mesa-dev \
-    libssl1.0-dev \
-    libtool \
-    libusb-1.0-0-dev \
-    libwayland-dev \
-    make \
-    nasm \
-    ninja-build \
-    pkg-config \
-    protobuf-compiler \
-    python3 \
-    xutils-dev
+install_packages() {
+  echo Installing packages...
+  sudo dpkg --add-architecture arm64
+  sudo apt-get update
+  sudo apt-get install -y \
+      autoconf \
+      automake \
+      build-essential \
+      "$@" \
+      curl \
+      gcc \
+      g++ \
+      git \
+      libcap-dev \
+      libdrm-dev \
+      libfdt-dev \
+      libegl1-mesa-dev \
+      libgles1-mesa-dev \
+      libgles2-mesa-dev \
+      libssl1.0-dev \
+      libtool \
+      libusb-1.0-0-dev \
+      libwayland-dev \
+      make \
+      nasm \
+      ninja-build \
+      pkg-config \
+      protobuf-compiler \
+      python3 \
+      xutils-dev # Needed to pacify autogen.sh for libepoxy
+  mkdir -p "${HOME}/bin"
+  curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+  chmod a+x ~/bin/repo
+}
 
-export RUST_VERSION=1.32.0 RUSTFLAGS='--cfg hermetic'
+retry() {
+  for i in $(seq 5); do
+    "$@" && return 0
+    sleep 1
+  done
+  return 1
+}
 
-curl -LO "https://static.rust-lang.org/rustup/archive/1.14.0/x86_64-unknown-linux-gnu/rustup-init"
-echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
-chmod +x rustup-init
-./rustup-init -y --no-modify-path --default-toolchain $RUST_VERSION
-source $HOME/.cargo/env
-rustup component add rustfmt-preview
-rm rustup-init
+prepare_cargo() {
+  echo Setting up cargo...
+  cd
+  rm -rf .cargo
+  # Sometimes curl hangs. When it does, retry
+  retry curl -LO \
+    "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
+  # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
+  chmod +x rustup-init
+  ./rustup-init -y --no-modify-path
+  source $HOME/.cargo/env
+  if [[ -n "$1" ]]; then
+    rustup target add "$1"
+  fi
+  rustup component add rustfmt-preview
+  rm rustup-init
 
-cd "${THIRD_PARTY_ROOT}"
-# minijail does not exist in upstream linux distros.
-git clone https://android.googlesource.com/platform/external/minijail
-cd minijail
-make -j
-mkdir -p "${HOME}/lib"
-cp libminijail.so "${HOME}/lib/"
-cp libminijail.so "${LIB_PATH}/"
+  if [[ -n "$1" ]]; then
+  cat >>~/.cargo/config <<EOF
+[target.$1]
+linker = "${1/-unknown-/-}"
+EOF
+  fi
+}
 
-cd "${THIRD_PARTY_ROOT}"
-# The gbm used by upstream linux distros is not compatible with crosvm, which must use Chrome OS's
-# minigbm.
-git clone https://android.googlesource.com/platform/external/minigbm \
-  -b upstream-master
-cd minigbm
-sed 's/-Wall/-Wno-maybe-uninitialized/g' -i Makefile
-ln -s "${HOME}" "${HOME}/usr"
-DESTDIR="${HOME}" make -j install
-cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
+prepare_source() {
+  echo Fetching source...
+  # Clean up anything that might be lurking
+  cd
+  rm -rf "${SOURCE_DIRS[@]}"
+  # Needed so we can use git
+  install_packages
+  mkdir -p "${BUILD_DIR}"
+  cd "${BUILD_DIR}"
+  git config --global user.name "AOSP Crosvm Builder"
+  git config --global user.email "nobody@android.com"
+  git config --global color.ui false
+  repo init -q -b crosvm-master -u https://android.googlesource.com/platform/manifest
+  if [[ -n "${CUSTOM_MANIFEST}" ]]; then
+    cp "${HOME}/${CUSTOM_MANIFEST}" .repo/manifests
+    repo init -m "${CUSTOM_MANIFEST}"
+  fi
+  repo sync
+}
 
-cd "${THIRD_PARTY_ROOT}"
-set -x
-# New libepoxy has EGL_KHR_DEBUG entry points needed by crosvm.
-git clone https://android.googlesource.com/platform/external/libepoxy
-cd libepoxy
-git checkout 707f50e680ab4f1861b1e54ca6e2907aaca56c12
-./autogen.sh --prefix="${HOME}"
-make -j install
-cp "${HOME}"/lib/libepoxy.so.0 "${LIB_PATH}"/
+compile() {
+  echo Compiling...
+  mkdir -p "${HOME}/lib" "${OUT_DIR}/bin" "${OUT_DIR}/lib"
 
-# Note: depends on libepoxy
-cd "${THIRD_PARTY_ROOT}"
-git clone https://android.googlesource.com/platform/external/virglrenderer \
-  -b upstream-master
-cd virglrenderer
-./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig
-make -j install
-cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
+  # Hack to make minigbm work
+  rm -rf "${HOME}/usr"
+  ln -s "${HOME}" "${HOME}/usr"
 
-cd "${THIRD_PARTY_ROOT}"
-git clone https://android.googlesource.com/platform/external/adhd \
-  -b upstream-master
+  cd "${THIRD_PARTY_ROOT}/minijail"
+  make -j
+  cp libminijail.so "${HOME}/lib/"
+  cp libminijail.so "${LIB_PATH}/"
 
-#cd "${THIRD_PARTY_ROOT}"
-# Install libtpm2 so that tpm2-sys/build.rs does not try to build it in place in
-# the read-only source directory.
-#git clone https://chromium.googlesource.com/chromiumos/third_party/tpm2 \
-#    && cd tpm2 \
-#    && git checkout 15260c8cd98eb10b4976d2161cd5cb9bc0c3adac \
-#    && make -j24
+  cd "${THIRD_PARTY_ROOT}/minigbm"
+  # The gbm used by upstream linux distros is not compatible with crosvm, which must use Chrome OS's
+  # minigbm.
+  local cpp_flags=()
+  local make_flags=()
+  local minigbm_drv=(${MINIGBM_DRV})
+  for drv in "${minigbm_drv[@]}"; do
+    cpp_flags+=(-D"DRV_${drv}")
+    make_flags+=("DRV_${drv}"=1)
+  done
+  DESTDIR="${HOME}" make -j install \
+    "${make_flags[@]}" \
+    CPPFLAGS="${cpp_flags[*]}" \
+    PKG_CONFIG=pkg-config
+  cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
 
-# Install librendernodehost
-#RUN git clone https://chromium.googlesource.com/chromiumos/platform2 \
-#    && cd platform2 \
-#    && git checkout 226fc35730a430344a68c34d7fe7d613f758f417 \
-#    && cd rendernodehost \
-#    && gcc -c src.c -o src.o \
-#    && ar rcs librendernodehost.a src.o \
-#    && cp librendernodehost.a /lib
+  cd "${THIRD_PARTY_ROOT}/libepoxy"
+  if [[ ! -d m4 ]]; then
+    ./autogen.sh --prefix="${HOME}"
+  fi
+  make -j install
+  cp "${HOME}"/lib/libepoxy.so.0 "${LIB_PATH}"/
 
-# Inform pkg-config where libraries we install are placed.
-#COPY pkgconfig/* /usr/lib/pkgconfig
+  # Note: depends on libepoxy
+  cd "${THIRD_PARTY_ROOT}/virglrenderer"
+  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig
+  make -j install
+  cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
 
-# Reduces image size and prevents accidentally using /scratch files
-#RUN rm -r /scratch /usr/bin/meson
+  source $HOME/.cargo/env
+  cd "${PLATFORM_ROOT}/crosvm"
 
-# The manual installation of shared objects requires an ld.so.cache refresh.
-#RUN ldconfig
+  RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
+    cargo build --features gpu
 
-# Pull down repositories that crosvm depends on to cros checkout-like locations.
-#ENV CROS_ROOT=/
-#ENV THIRD_PARTY_ROOT=$CROS_ROOT/third_party
-#RUN mkdir -p $THIRD_PARTY_ROOT
-#ENV PLATFORM_ROOT=$CROS_ROOT/platform
-#RUN mkdir -p $PLATFORM_ROOT
+  # Save the outputs
+  cp Cargo.lock "${OUT_DIR}"
+  cp target/debug/crosvm "${OUT_DIR}/bin/"
 
-
-
-mkdir -p "${BUILD_DIR}/platform"
-cd "${BUILD_DIR}/platform"
-git clone https://android.googlesource.com/platform/external/crosvm \
-  -b upstream-master
-
-cd "${BUILD_DIR}/platform/crosvm"
-
-RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN/../lib64/crosvm -C link-arg=-L${HOME}/lib" \
-  cargo build --features gpu
-
-# Save the outputs
-mkdir -p "${OUT_DIR}"
-cp Cargo.lock "${OUT_DIR}"
-mkdir -p "${OUT_DIR}/bin/"
-cp target/debug/crosvm "${OUT_DIR}/bin/"
+  cargo --version --verbose > "${OUT_DIR}/cargo_version.txt"
+  rustup show > "${OUT_DIR}/rustup_show.txt"
+  dpkg-query -W > "${OUT_DIR}/builder-packages.txt"
+  repo manifest -r -o ${OUT_DIR}/manifest.xml
+  echo Results in ${OUT_DIR}
+}
 
 
-cargo --version --verbose > "${OUT_DIR}/cargo_version.txt"
-rustup show > "${OUT_DIR}/rustup_show.txt"
-dpkg-query -W > "${OUT_DIR}/builder-packages.txt"
+arm64_retry() {
+  MINIGBM_DRV="RADEON VC4" compile
+}
 
-cd "${HOME}"
-for i in $(find . -name .git -type d -print); do
-  dir="$(dirname "$i")"
-  pushd "${dir}" > /dev/null 2>&1
-  echo "${dir}" \
-    "$(git remote get-url "$(git remote show)")" \
-    "$(git rev-parse HEAD)"
-  popd > /dev/null 2>&1
-done > "${OUT_DIR}/BUILD_INFO"
+arm64_build() {
+  rm -rf "${BUILD_OUTPUTS[@]}"
+  prepare_cargo
+  arm64_retry
+}
 
-echo Results in ${OUT_DIR}
+x86_64_retry() {
+  MINIGBM_DRV="I915 RADEON VC4" compile
+}
+
+x86_64_build() {
+  rm -rf "${BUILD_OUTPUTS[@]}"
+  # Cross-compilation is x86_64 specific
+  sudo apt install -y crossbuild-essential-arm64
+  prepare_cargo aarch64-unknown-linux-gnu
+  x86_64_retry
+}
+
+if [[ $# -lt 1 ]]; then
+  echo Choosing default config
+  set prepare_source x86_64_build
+fi
+
+echo Steps: "$@"
+
+for i in "$@"; do
+  echo $i
+  case "$i" in
+    CUSTOM_MANIFEST=*) CUSTOM_MANIFEST="${i/CUSTOM_MANIFEST=/}" ;;
+    arm64_build) $i ;;
+    arm64_retry) $i ;;
+    prepare_source) $i ;;
+    x86_64_build) $i ;;
+    x86_64_retry) $i ;;
+    *) echo $i unknown 1>&2
+      echo usage: $0 'arm64_build|arm64_retry|prepare_source|x86_64_build|x86_64_retry ...' 1>&2
+       exit 2
+       ;;
+  esac
+done

@@ -1,0 +1,4 @@
+cargo 1.35.0 (6f3e9c367 2019-04-04)
+release: 1.35.0
+commit-hash: 6f3e9c367abb497c64f360c3839dab5e74928d5c
+commit-date: 2019-04-04
