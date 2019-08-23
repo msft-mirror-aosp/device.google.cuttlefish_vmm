@@ -143,7 +143,8 @@ compile() {
 
   # Note: depends on libepoxy
   cd "${THIRD_PARTY_ROOT}/virglrenderer"
-  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig
+  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig \
+    --disable-egl
   make -j install
   cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
 
@@ -151,7 +152,7 @@ compile() {
   cd "${PLATFORM_ROOT}/crosvm"
 
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
-    cargo build --features gpu
+    cargo build --features gpu,x
 
   # Save the outputs
   cp Cargo.lock "${OUT_DIR}"
