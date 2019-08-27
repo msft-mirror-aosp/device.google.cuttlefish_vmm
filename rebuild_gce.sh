@@ -4,7 +4,7 @@ ARCH="$(uname -m)"
 pushd "$(dirname "$0")" > /dev/null 2>&1
 OUT_DIR="$(pwd)/${ARCH}-linux-gnu"
 popd > /dev/null 2>&1
-LIB_PATH="${OUT_DIR}/lib"
+LIB_PATH="${OUT_DIR}/bin"
 REPO_DIR=${HOME}/repo
 BUILD_DIR=${HOME}/build
 export THIRD_PARTY_ROOT="${BUILD_DIR}/third_party"
@@ -107,7 +107,7 @@ prepare_source() {
 
 compile() {
   echo Compiling...
-  mkdir -p "${HOME}/lib" "${OUT_DIR}/bin" "${OUT_DIR}/lib"
+  mkdir -p "${HOME}/lib" "${OUT_DIR}/bin"
 
   # Hack to make minigbm work
   rm -rf "${HOME}/usr"
@@ -144,7 +144,8 @@ compile() {
   # Note: depends on libepoxy
   cd "${THIRD_PARTY_ROOT}/virglrenderer"
   ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig \
-    --disable-egl
+    --disable-egl \
+    LDFLAGS=-Wl,-rpath,\\\$\$ORIGIN
   make -j install
   cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
 
