@@ -153,7 +153,7 @@ compile() {
   cd "${PLATFORM_ROOT}/crosvm"
 
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
-    cargo build --features gpu,x
+    cargo build --features gpu,x,composite-disk
 
   # Save the outputs
   cp Cargo.lock "${OUT_DIR}"
