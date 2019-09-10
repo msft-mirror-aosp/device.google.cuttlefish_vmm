@@ -1,12 +1,14 @@
 #!/bin/bash
 
 for i in */bin/*; do
-  name="${i//\//_}"
-  name="${name//-/_}"
-  name="${name/_bin_/_}"
-  path="$(dirname $(dirname "$i"))"
-  stem="$(basename "$i")"
-  cat <<EOF
+  if [[ ! -L "$i" ]]
+  then
+    name="${i//\//_}"
+    name="${name//-/_}"
+    name="${name/_bin_/_}"
+    path="$(dirname $(dirname "$i"))"
+    stem="$(basename "$i")"
+    cat <<EOF
 cc_prebuilt_binary {
   name: "${name}",
   srcs: ["${i}"],
@@ -16,16 +18,19 @@ cc_prebuilt_binary {
 }
 
 EOF
+  fi
 done
 
 for i in */lib/*; do
-  name="${i//\//_}"
-  name="${name//-/_}"
-  name="${name/_lib_/_}"
-  name="${name}_for_crosvm"
-  path="$(dirname $(dirname "$i"))"
-  stem="$(basename "$i")"
-  cat <<EOF
+  if [[ ! -L "$i" ]]
+  then
+    name="${i//\//_}"
+    name="${name//-/_}"
+    name="${name/_lib_/_}"
+    name="${name}_for_crosvm"
+    path="$(dirname $(dirname "$i"))"
+    stem="$(basename "$i")"
+    cat <<EOF
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "${name}",
@@ -36,4 +41,5 @@ cc_prebuilt_binary {
 }
 
 EOF
+  fi
 done
