@@ -4,7 +4,6 @@ installed toolchains
 --------------------
 
 stable-aarch64-unknown-linux-gnu
-1.35.0-aarch64-unknown-linux-gnu
 1.36.0-aarch64-unknown-linux-gnu
 
 active toolchain
