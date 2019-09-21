@@ -7,7 +7,7 @@
   <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
   
   <project groups="pdk" name="platform/external/adhd" path="third_party/adhd" revision="ced4ae2804e81b77fc3e9b15798bc93af984cd7f" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="43784276721cfc0b80f6cd8a1b7c0c0a77e47945" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="f96646779d6ce8b66d7e26654c36dc74ed1de28d" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/libepoxy" path="third_party/libepoxy" revision="174d1194015fb352615417da636ca26d6a4829b6" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/minigbm" path="third_party/minigbm" revision="82e37a6c196d089140bf71a83dc0f6042d22ffd2" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/minijail" path="third_party/minijail" revision="52f6adabb6f44761cc23a226cc396bd5c664641c" upstream="crosvm-master"/>
