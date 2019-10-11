@@ -41,7 +41,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "aarch64_linux_gnu_libepoxy.so.0_for_crosvm",
-  srcs: ["aarch64-linux-gnu/lib/libepoxy.so.0"],
+  srcs: ["aarch64-linux-gnu/bin/libepoxy.so.0"],
   stem: "libepoxy.so.0",
   relative_install_path: "aarch64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -50,7 +50,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "aarch64_linux_gnu_libgbm.so.1_for_crosvm",
-  srcs: ["aarch64-linux-gnu/lib/libgbm.so.1"],
+  srcs: ["aarch64-linux-gnu/bin/libgbm.so.1"],
   stem: "libgbm.so.1",
   relative_install_path: "aarch64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -59,7 +59,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "aarch64_linux_gnu_libminijail.so_for_crosvm",
-  srcs: ["aarch64-linux-gnu/lib/libminijail.so"],
+  srcs: ["aarch64-linux-gnu/bin/libminijail.so"],
   stem: "libminijail.so",
   relative_install_path: "aarch64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -68,7 +68,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "aarch64_linux_gnu_libvirglrenderer.so.0_for_crosvm",
-  srcs: ["aarch64-linux-gnu/lib/libvirglrenderer.so.0"],
+  srcs: ["aarch64-linux-gnu/bin/libvirglrenderer.so.0"],
   stem: "libvirglrenderer.so.0",
   relative_install_path: "aarch64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -77,7 +77,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libepoxy.so.0_for_crosvm",
-  srcs: ["x86_64-linux-gnu/lib/libepoxy.so.0"],
+  srcs: ["x86_64-linux-gnu/bin/libepoxy.so.0"],
   stem: "libepoxy.so.0",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -86,7 +86,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libgbm.so.1_for_crosvm",
-  srcs: ["x86_64-linux-gnu/lib/libgbm.so.1"],
+  srcs: ["x86_64-linux-gnu/bin/libgbm.so.1"],
   stem: "libgbm.so.1",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -95,7 +95,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libminijail.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/lib/libminijail.so"],
+  srcs: ["x86_64-linux-gnu/bin/libminijail.so"],
   stem: "libminijail.so",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
@@ -104,7 +104,7 @@ cc_prebuilt_binary {
 // Using cc_prebuilt_binary because cc_prebuild_library can't handle stem on pie
 cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libvirglrenderer.so.0_for_crosvm",
-  srcs: ["x86_64-linux-gnu/lib/libvirglrenderer.so.0"],
+  srcs: ["x86_64-linux-gnu/bin/libvirglrenderer.so.0"],
   stem: "libvirglrenderer.so.0",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
