@@ -1,4 +1,4 @@
-cargo 1.36.0 (c4fcfb725 2019-05-15)
-release: 1.36.0
-commit-hash: c4fcfb725b4be00c72eb9cf30c7d8b095577c280
-commit-date: 2019-05-15
+cargo 1.40.0 (bc8e4c8be 2019-11-22)
+release: 1.40.0
+commit-hash: bc8e4c8be13c8f8d1583f9d52e55fda038c0f9d4
+commit-date: 2019-11-22
