@@ -1,14 +1,14 @@
 Default host: x86_64-unknown-linux-gnu
 
-installed toolchains
---------------------
+installed targets for active toolchain
+--------------------------------------
 
-stable-x86_64-unknown-linux-gnu
-1.36.0-x86_64-unknown-linux-gnu
+aarch64-unknown-linux-gnu
+x86_64-unknown-linux-gnu
 
 active toolchain
 ----------------
 
-1.36.0-x86_64-unknown-linux-gnu (overridden by '/home/cuttlefish_crosvm_builder/build/platform/crosvm/rust-toolchain')
-rustc 1.36.0 (a53f9df32 2019-07-03)
+stable-x86_64-unknown-linux-gnu (overridden by '/home/cuttlefish_crosvm_builder/source/platform/crosvm/rust-toolchain')
+rustc 1.40.0 (73528e339 2019-12-16)
 
