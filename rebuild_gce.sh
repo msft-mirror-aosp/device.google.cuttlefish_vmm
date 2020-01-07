@@ -105,12 +105,16 @@ prepare_source() {
   install_packages
   mkdir -p "${SOURCE_DIR}"
   cd "${SOURCE_DIR}"
-  git config --global user.name "AOSP Crosvm Builder"
-  git config --global user.email "nobody@android.com"
-  git config --global color.ui false
+
+  if ! git config user.name; then
+    git config --global user.name "AOSP Crosvm Builder"
+    git config --global user.email "nobody@android.com"
+    git config --global color.ui false
+  fi
+
   repo init -q -b crosvm-master -u https://android.googlesource.com/platform/manifest
   if [[ -n "${CUSTOM_MANIFEST}" ]]; then
-    cp "${HOME}/${CUSTOM_MANIFEST}" .repo/manifests
+    cp "${CUSTOM_MANIFEST}" .repo/manifests
     repo init -m "${CUSTOM_MANIFEST}"
   fi
   repo sync
@@ -133,7 +137,7 @@ compile_minigbm() {
 
   # Minigbm's package config file has a default hard-coded path. Update here so
   # that dependent packages can find the files.
-  sed -i "s|prefix=/usr|prefix=${WORKING_DIR}/usr|" gbm.pc
+  sed -i "s|prefix=/usr\$|prefix=${WORKING_DIR}/usr|" gbm.pc
 
   # The gbm used by upstream linux distros is not compatible with crosvm, which must use Chrome OS's
   # minigbm.
@@ -159,7 +163,7 @@ compile_epoxy() {
   cd "${SOURCE_DIR}/third_party/libepoxy"
 
   meson build \
-    --libdir="/home/cuttlefish_crosvm_builder/working/usr/lib" \
+    --libdir="${WORKING_DIR}/usr/lib" \
     --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dglx=no \
@@ -186,10 +190,11 @@ compile_virglrenderer() {
   sed -i "s|cc.has_header('epoxy/egl.h')|cc.has_header('epoxy/egl.h', dependencies: epoxy_dep)|" meson.build
 
   # Need to figure out the right way to pass this down...
-  sed -i "s|install : true|install : true, install_rpath : '\$ORIGIN',|" src/meson.build
+  grep "install_rpath" src/meson.build || \
+    sed -i "s|install : true|install : true, install_rpath : '\$ORIGIN',|" src/meson.build
 
   meson build \
-    --libdir="/home/cuttlefish_crosvm_builder/working/usr/lib" \
+    --libdir="${WORKING_DIR}/usr/lib" \
     --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dplatforms=egl \
@@ -202,7 +207,7 @@ compile_virglrenderer() {
   cp "${WORKING_DIR}/usr/lib/libvirglrenderer.so.1" "${OUTPUT_LIB_DIR}"
 
   cd "${OUTPUT_LIB_DIR}"
-  ln -s "libvirglrenderer.so.1" "libvirglrenderer.so"
+  ln -s -f "libvirglrenderer.so.1" "libvirglrenderer.so"
 }
 
 compile_crosvm() {
