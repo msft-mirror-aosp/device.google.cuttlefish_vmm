@@ -49,7 +49,7 @@ main() {
       exit 2
     fi
     source_files+=("${FLAGS_custom_manifest}")
-    gce_flags+=("CUSTOM_MANIFEST=$(basename "${FLAGS_custom_manifest}")")
+    gce_flags+=("CUSTOM_MANIFEST=/home/${FLAGS_x86_user}/$(basename "${FLAGS_custom_manifest}")")
   fi
   if [[ -z "${FLAGS_project}" ]]; then
     echo Must specify project 1>&2
