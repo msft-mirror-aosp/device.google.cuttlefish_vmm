@@ -94,16 +94,9 @@ EOF
   fi
 }
 
-prepare_source() {
-  if [ "$(ls -A $SOURCE_DIR)" ]; then
-    echo "${SOURCE_DIR} is non empty. Run this from an empty directory if you wish to fetch the source." 1>&2
-    exit 2
-  fi
-
+fetch_source() {
   echo "Fetching source..."
 
-  # Needed so we can use git
-  install_packages
   mkdir -p "${SOURCE_DIR}"
   cd "${SOURCE_DIR}"
 
@@ -119,6 +112,20 @@ prepare_source() {
     repo init -m "${CUSTOM_MANIFEST}"
   fi
   repo sync
+}
+
+prepare_source() {
+  if [ "$(ls -A $SOURCE_DIR)" ]; then
+    echo "${SOURCE_DIR} is non empty. Run this from an empty directory if you wish to fetch the source." 1>&2
+    exit 2
+  fi
+  fetch_source
+}
+
+resync_source() {
+  echo "Deleting source directory..."
+  rm -rf "${SOURCE_DIR}"
+  fetch_source
 }
 
 compile_minijail() {
@@ -287,6 +294,8 @@ for i in "$@"; do
     CUSTOM_MANIFEST=*) CUSTOM_MANIFEST="${i/CUSTOM_MANIFEST=/}" ;;
     arm64_build) $i ;;
     arm64_retry) $i ;;
+    install_packages) $i ;;
+    resync_source) $i ;;
     prepare_source) $i ;;
     x86_64_build) $i ;;
     x86_64_retry) $i ;;
