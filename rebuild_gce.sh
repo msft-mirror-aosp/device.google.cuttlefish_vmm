@@ -39,7 +39,7 @@ install_packages() {
       libegl1-mesa-dev \
       libgl1-mesa-dev \
       libgles2-mesa-dev \
-      libssl1.0-dev \
+      libssl-dev \
       libtool \
       libusb-1.0-0-dev \
       libwayland-dev \
@@ -48,6 +48,7 @@ install_packages() {
       ninja-build \
       pkg-config \
       protobuf-compiler \
+      python \
       python3 \
       python3-pip \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
