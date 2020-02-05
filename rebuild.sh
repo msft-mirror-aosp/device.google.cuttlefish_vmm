@@ -61,6 +61,172 @@ function container_exists() {
   [[ $(docker ps -a --filter "name=^/$1$" --format '{{.Names}}') == $1 ]] && echo $1;
 }
 
+function build_on_gce() {
+  if [[ -z "${FLAGS_gce_instance}" ]]; then
+    echo Must specify instance 1>&2
+    fail=1
+  fi
+  if [[ -z "${FLAGS_gce_project}" ]]; then
+    echo Must specify project 1>&2
+    fail=1
+  fi
+  if [[ -z "${FLAGS_gce_zone}" ]]; then
+    echo Must specify zone 1>&2
+    fail=1
+  fi
+  if [[ "${fail}" -ne 0 ]]; then
+    exit "${fail}"
+  fi
+  project_zone_flags=(--project="${FLAGS_gce_project}" --zone="${FLAGS_gce_zone}")
+  if [ ${_reuse} -eq 0 ]; then
+    delete_instances=("${FLAGS_gce_instance}")
+    gcloud compute instances delete -q \
+      "${project_zone_flags[@]}" \
+      "${delete_instances[@]}" || \
+        echo Not running
+    gcloud compute instances create \
+      "${project_zone_flags[@]}" \
+      --boot-disk-size=200GB \
+      --machine-type=n1-standard-4 \
+      --image-family="${FLAGS_gce_source_image_family}" \
+      --image-project="${FLAGS_gce_source_image_project}" \
+      "${FLAGS_gce_instance}"
+    wait_for_instance "${FLAGS_gce_instance}"
+  fi
+  local _status=$(gcloud compute instances list \
+                  --project="${FLAGS_gce_project}" \
+                  --zones="${FLAGS_gce_zone}" \
+                  --filter="name=('${FLAGS_gce_instance}')" \
+                  --format=flattened | awk '/status:/ {print $2}')
+  if [ "${_status}" != "RUNNING" ] ; then
+    echo "Instance ${FLAGS_gce_instance} is not running."
+    exit 1;
+  fi
+  # beta for the --internal-ip flag that may be passed via SSH_FLAGS
+  gcloud beta compute scp "${SSH_FLAGS[@]}" \
+    "${project_zone_flags[@]}" \
+    "${source_files[@]}" \
+    "${FLAGS_gce_user}@${FLAGS_gce_instance}:"
+  if [ ${_reuse} -eq 0 ]; then
+    gcloud compute ssh "${SSH_FLAGS[@]}" \
+      "${project_zone_flags[@]}" \
+      "${FLAGS_gce_user}@${FLAGS_gce_instance}" -- \
+      ./rebuild-internal.sh install_packages
+  fi
+  gcloud compute ssh "${SSH_FLAGS[@]}" \
+    "${project_zone_flags[@]}" \
+    "${FLAGS_gce_user}@${FLAGS_gce_instance}" -- \
+    ./rebuild-internal.sh "${gce_flags[@]}" ${_prepare_source[@]} '$(uname -m)_build'
+  gcloud beta compute scp --recurse "${SSH_FLAGS[@]}" \
+    "${project_zone_flags[@]}" \
+    "${FLAGS_gce_user}@${FLAGS_gce_instance}":x86_64-linux-gnu \
+    "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
+  gcloud compute disks describe \
+    "${project_zone_flags[@]}" "${FLAGS_gce_instance}" | \
+      grep ^sourceImage: > "${DIR}"/x86_64-linux-gnu/builder_image.txt
+}
+
+function build_on_arm_board() {
+  if [[ -z "${FLAGS_arm_instance}" ]]; then
+    echo Must specify IP address of ARM board 1>&2
+    fail=1
+  fi
+  if [[ -z "${FLAGS_arm_user}" ]]; then
+    echo Must specify a user account on ARM board 1>&2
+    fail=1
+  fi
+  if [[ "${fail}" -ne 0 ]]; then
+    exit "${fail}"
+  fi
+  scp \
+    "${source_files[@]}" \
+    "${FLAGS_arm_user}@${FLAGS_arm_instance}:"
+  if [ ${_reuse} -eq 0 ]; then
+    ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
+      ./rebuild-internal.sh install_packages
+  fi
+  ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
+    ./rebuild-internal.sh "${arm_flags[@]}" ${_prepare_source[@]} '$(uname -m)_build'
+  scp -r "${FLAGS_arm_user}@${FLAGS_arm_instance}":aarch64-linux-gnu \
+    "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
+}
+
+build_locally_using_docker() {
+  if [[ -z "${FLAGS_docker_image}" ]]; then
+    echo Option --docker_image must not be empty 1>&1
+    fail=1
+  fi
+  if [[ -z "${FLAGS_docker_container}" ]]; then
+    echo Options --docker_container must not be empty 1>&2
+    fail=1
+  fi
+  case "${FLAGS_docker_arch}" in
+    aarch64) ;;
+    x86_64) ;;
+    *) echo Invalid value ${FLAGS_docker_arch} for --docker_arch 1>&2
+      fail=1
+      ;;
+  esac
+  if [[ -z "${FLAGS_docker_user}" ]]; then
+    echo Options --docker_user must not be empty 1>&2
+    fail=1
+  fi
+  if [[ -z "${FLAGS_docker_uid}" ]]; then
+    echo Options --docker_uid must not be empty 1>&2
+    fail=1
+  fi
+  if [[ ${_reuse} -eq 1 ]]; then
+      # Volume mapping are specified only when a container is created.
+    if [ -n "${FLAGS_docker_source}" ]; then
+      echo Option --docker_source may not be specified with --reuse 1>&2
+      fail=1
+    fi
+    if [ -n "${FLAGS_docker_working}" ]; then
+      echo Option --docker_working may not be specified with --reuse 1>&2
+      fail=1
+    fi
+  fi
+  if [[ "${fail}" -ne 0 ]]; then
+    exit "${fail}"
+  fi
+  if [[ ${_reuse} -eq 0 ]]; then
+    docker build \
+      -f ${DIR}/Dockerfile \
+      -t ${FLAGS_docker_image}:latest \
+      ${DIR} \
+      --build-arg USER=${FLAGS_docker_user} \
+      --build-arg UID=${FLAGS_docker_uid}
+    _docker_source=()
+    if [ -n "${FLAGS_docker_source}" ]; then
+      _docker_source+=("-v ${FLAGS_docker_source}:/source:rw")
+    fi
+    _docker_working=()
+    if [ -n "${FLAGS_docker_working}" ]; then
+      _docker_working+=("-v ${FLAGS_docker_working}:/working:rw")
+    fi
+    if [[ -n "$(container_exists ${FLAGS_docker_container})" ]]; then
+      docker rm -f ${FLAGS_docker_container}
+    fi
+    docker run -d \
+      --privileged \
+      --name ${FLAGS_docker_container} \
+      -h ${FLAGS_docker_container} \
+      ${_docker_source} \
+      ${_docker_working} \
+      -v "${FLAGS_docker_output}":/output \
+      -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+      ${FLAGS_docker_image}:latest
+  else
+    docker unpause ${FLAGS_docker_container}
+  fi
+  docker exec -it \
+    --user ${FLAGS_docker_user} \
+    ${docker_flags[@]} \
+    ${FLAGS_docker_container} \
+    /static/rebuild-internal.sh ${_prepare_source[@]} ${FLAGS_docker_arch}_build
+  docker pause ${FLAGS_docker_container}
+}
+
 main() {
   set -o errexit
   set -x
@@ -70,6 +236,12 @@ main() {
   docker_flags=("-e SOURCE_DIR=/source" "-e WORKING_DIR=/working" "-e OUTPUT_DIR=/output" "-e TOOLS_DIR=/static/tools")
   gce_flags=()
   arm_flags=()
+
+  if [[ $(( $((${FLAGS_gce}==${FLAGS_TRUE})) + $((${FLAGS_arm}==${FLAGS_TRUE})) + $((${FLAGS_docker}==${FLAGS_TRUE})) )) > 1 ]]; then
+    echo You may specify only one of --gce, --docker, or --arm 1>&2
+    exit 2
+  fi
+
   if [[ -n "${FLAGS_manifest}" ]]; then
     if [[ ! -f "${FLAGS_manifest}" ]]; then
       echo custom manifest not found: ${FLAGS_manifest} 1>&1
@@ -93,172 +265,20 @@ main() {
     _reuse=1
   fi
   if [[ ${FLAGS_gce} -eq ${FLAGS_TRUE} ]]; then
-    if [[ -z "${FLAGS_gce_instance}" ]]; then
-      echo Must specify instance 1>&2
-      fail=1
-    fi
-    if [[ -z "${FLAGS_gce_project}" ]]; then
-      echo Must specify project 1>&2
-      fail=1
-    fi
-    if [[ -z "${FLAGS_gce_zone}" ]]; then
-      echo Must specify zone 1>&2
-      fail=1
-    fi
-    if [[ "${fail}" -ne 0 ]]; then
-      exit "${fail}"
-    fi
-    project_zone_flags=(--project="${FLAGS_gce_project}" --zone="${FLAGS_gce_zone}")
-    if [ ${_reuse} -eq 0 ]; then
-      delete_instances=("${FLAGS_gce_instance}")
-      gcloud compute instances delete -q \
-        "${project_zone_flags[@]}" \
-        "${delete_instances[@]}" || \
-          echo Not running
-      gcloud compute instances create \
-        "${project_zone_flags[@]}" \
-        --boot-disk-size=200GB \
-        --machine-type=n1-standard-4 \
-        --image-family="${FLAGS_gce_source_image_family}" \
-        --image-project="${FLAGS_gce_source_image_project}" \
-        "${FLAGS_gce_instance}"
-      wait_for_instance "${FLAGS_gce_instance}"
-    fi
-    local _status=$(gcloud compute instances list \
-                    --project="${FLAGS_gce_project}" \
-                    --zones="${FLAGS_gce_zone}" \
-                    --filter="name=('${FLAGS_gce_instance}')" \
-                    --format=flattened | awk '/status:/ {print $2}')
-    if [ "${_status}" != "RUNNING" ] ; then
-      echo "Instance ${FLAGS_gce_instance} is not running."
-      exit 1;
-    fi
-    # beta for the --internal-ip flag that may be passed via SSH_FLAGS
-    gcloud beta compute scp "${SSH_FLAGS[@]}" \
+    build_on_gce
+    exit 0
+    gcloud compute instances delete -q \
       "${project_zone_flags[@]}" \
-      "${source_files[@]}" \
-      "${FLAGS_gce_user}@${FLAGS_gce_instance}:"
-    if [ ${_reuse} -eq 0 ]; then
-      gcloud compute ssh "${SSH_FLAGS[@]}" \
-        "${project_zone_flags[@]}" \
-        "${FLAGS_gce_user}@${FLAGS_gce_instance}" -- \
-        ./rebuild-internal.sh install_packages
-    fi
-    gcloud compute ssh "${SSH_FLAGS[@]}" \
-      "${project_zone_flags[@]}" \
-      "${FLAGS_gce_user}@${FLAGS_gce_instance}" -- \
-      ./rebuild-internal.sh "${gce_flags[@]}" ${_prepare_source[@]} '$(uname -m)_build'
-    gcloud beta compute scp --recurse "${SSH_FLAGS[@]}" \
-      "${project_zone_flags[@]}" \
-      "${FLAGS_gce_user}@${FLAGS_gce_instance}":x86_64-linux-gnu \
-      "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
-    gcloud compute disks describe \
-      "${project_zone_flags[@]}" "${FLAGS_gce_instance}" | \
-        grep ^sourceImage: > "${DIR}"/x86_64-linux-gnu/builder_image.txt
+      "${FLAGS_gce_instance}"
   fi
   if [ ${FLAGS_arm} -eq ${FLAGS_TRUE} ]; then
-    if [[ -z "${FLAGS_arm_instance}" ]]; then
-      echo Must specify IP address of ARM board 1>&2
-      fail=1
-    fi
-    if [[ -z "${FLAGS_arm_instance}" ]]; then
-      echo Must specify a user account on ARM board 1>&2
-      fail=1
-    fi
-    if [[ "${fail}" -ne 0 ]]; then
-      exit "${fail}"
-    fi
-    scp \
-      "${source_files[@]}" \
-      "${FLAGS_arm_user}@${FLAGS_arm_instance}:"
-    if [ ${_reuse} -eq 0 ]; then
-      ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
-        ./rebuild-internal.sh install_packages
-    fi
-    ssh -t "${FLAGS_arm_user}@${FLAGS_arm_user}" -- \
-      ./rebuild-internal.sh "${arm_flags[@]}" ${_prepare_source[@]} '$(uname -m)_build'
-    scp -r "${FLAGS_arm_user}@${FLAGS_arm_instance}":aarch64-linux-gnu \
-      "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
+    build_on_arm_board
+    exit 0
   fi
   if [[ ${FLAGS_docker} -eq ${FLAGS_TRUE} ]]; then
-    if [[ -z "${FLAGS_docker_image}" ]]; then
-      echo Option --docker_image must not be empty 1>&1
-      fail=1
-    fi
-    if [[ -z "${FLAGS_docker_container}" ]]; then
-      echo Options --docker_container must not be empty 1>&2
-      fail=1
-    fi
-    case "${FLAGS_docker_arch}" in
-      aarch64) ;;
-      x86_64) ;;
-      *) echo Invalid value ${FLAGS_docker_arch} for --docker_arch 1>&2
-        fail=1
-        ;;
-    esac
-    if [[ -z "${FLAGS_docker_user}" ]]; then
-      echo Options --docker_user must not be empty 1>&2
-      fail=1
-    fi
-    if [[ -z "${FLAGS_docker_uid}" ]]; then
-      echo Options --docker_uid must not be empty 1>&2
-      fail=1
-    fi
-    if [[ ${_reuse} -eq 1 ]]; then
-        # Volume mapping are specified only when a container is created.
-      if [ -n "${FLAGS_docker_source}" ]; then
-        echo Option --docker_source may not be specified with --reuse 1>&2
-        fail=1
-      fi
-      if [ -n "${FLAGS_docker_working}" ]; then
-        echo Option --docker_working may not be specified with --reuse 1>&2
-        fail=1
-      fi
-    fi
-    if [[ "${fail}" -ne 0 ]]; then
-      exit "${fail}"
-    fi
-    if [[ ${_reuse} -eq 0 ]]; then
-      docker build \
-        -f ${DIR}/Dockerfile \
-        -t ${FLAGS_docker_image}:latest \
-        ${DIR} \
-        --build-arg USER=${FLAGS_docker_user} \
-        --build-arg UID=${FLAGS_docker_uid}
-      _docker_source=()
-      if [ -n "${FLAGS_docker_source}" ]; then
-        _docker_source+=("-v ${FLAGS_docker_source}:/source:rw")
-      fi
-      _docker_working=()
-      if [ -n "${FLAGS_docker_working}" ]; then
-        _docker_working+=("-v ${FLAGS_docker_working}:/working:rw")
-      fi
-      if [[ -n "$(container_exists ${FLAGS_docker_container})" ]]; then
-        docker rm -f ${FLAGS_docker_container}
-      fi
-      docker run -d \
-        --privileged \
-        --name ${FLAGS_docker_container} \
-        -h ${FLAGS_docker_container} \
-        ${_docker_source} \
-        ${_docker_working} \
-        -v "${FLAGS_docker_output}":/output \
-        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-        ${FLAGS_docker_image}:latest
-    else
-      docker unpause ${FLAGS_docker_container}
-    fi
-    docker exec -it \
-      --user ${FLAGS_docker_user} \
-      ${docker_flags[@]} \
-      ${FLAGS_docker_container} \
-      /static/rebuild-internal.sh ${_prepare_source[@]} ${FLAGS_docker_arch}_build
-    docker pause ${FLAGS_docker_container}
+    build_locally_using_docker
+    exit 0
   fi
-  exit 0
-  gcloud compute instances delete -q \
-    "${project_zone_flags[@]}" \
-    "${FLAGS_gce_instance}"
 }
 
 FLAGS "$@" || exit 1
