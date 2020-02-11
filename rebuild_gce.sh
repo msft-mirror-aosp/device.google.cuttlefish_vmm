@@ -1,17 +1,19 @@
 #!/bin/bash
 
+# Note: not intended to be invoked directly, see rebuild.sh.
+#
+# Rebuilds Crosvm and its dependencies from a clean state.
+
+SOURCE_DIR="$(pwd)/source"
+TOOLS_DIR="$(pwd)/tools"
+WORKING_DIR="$(pwd)/working"
+
 ARCH="$(uname -m)"
-pushd "$(dirname "$0")" > /dev/null 2>&1
-OUT_DIR="$(pwd)/${ARCH}-linux-gnu"
-popd > /dev/null 2>&1
-LIB_PATH="${OUT_DIR}/bin"
-REPO_DIR=${HOME}/repo
-BUILD_DIR=${HOME}/build
-export THIRD_PARTY_ROOT="${BUILD_DIR}/third_party"
-export PLATFORM_ROOT="${BUILD_DIR}/platform"
-export PATH="${PATH}:${HOME}/bin"
-SOURCE_DIRS=(build)
-BUILD_OUTPUTS=(usr lib)
+OUTPUT_DIR="$(pwd)/${ARCH}-linux-gnu"
+OUTPUT_BIN_DIR="${OUTPUT_DIR}/bin"
+OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
+
+export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
 CUSTOM_MANIFEST=""
 
 set -o errexit
@@ -26,6 +28,7 @@ install_packages() {
       automake \
       build-essential \
       "$@" \
+      cmake \
       curl \
       gcc \
       g++ \
@@ -34,9 +37,9 @@ install_packages() {
       libdrm-dev \
       libfdt-dev \
       libegl1-mesa-dev \
-      libgles1-mesa-dev \
+      libgl1-mesa-dev \
       libgles2-mesa-dev \
-      libssl1.0-dev \
+      libssl-dev \
       libtool \
       libusb-1.0-0-dev \
       libwayland-dev \
@@ -45,11 +48,17 @@ install_packages() {
       ninja-build \
       pkg-config \
       protobuf-compiler \
+      python \
       python3 \
+      python3-pip \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
-  mkdir -p "${HOME}/bin"
-  curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-  chmod a+x ~/bin/repo
+  mkdir -p "${TOOLS_DIR}"
+  curl https://storage.googleapis.com/git-repo-downloads/repo > "${TOOLS_DIR}/repo"
+  chmod a+x "${TOOLS_DIR}/repo"
+
+  # Meson getting started guide mentions that the distro version is frequently
+  # outdated and recommends installing via pip.
+  pip3 install meson
 }
 
 retry() {
@@ -85,40 +94,59 @@ EOF
   fi
 }
 
-prepare_source() {
-  echo Fetching source...
-  # Clean up anything that might be lurking
-  cd
-  rm -rf "${SOURCE_DIRS[@]}"
-  # Needed so we can use git
-  install_packages
-  mkdir -p "${BUILD_DIR}"
-  cd "${BUILD_DIR}"
-  git config --global user.name "AOSP Crosvm Builder"
-  git config --global user.email "nobody@android.com"
-  git config --global color.ui false
+fetch_source() {
+  echo "Fetching source..."
+
+  mkdir -p "${SOURCE_DIR}"
+  cd "${SOURCE_DIR}"
+
+  if ! git config user.name; then
+    git config --global user.name "AOSP Crosvm Builder"
+    git config --global user.email "nobody@android.com"
+    git config --global color.ui false
+  fi
+
   repo init -q -b crosvm-master -u https://android.googlesource.com/platform/manifest
   if [[ -n "${CUSTOM_MANIFEST}" ]]; then
-    cp "${HOME}/${CUSTOM_MANIFEST}" .repo/manifests
+    cp "${CUSTOM_MANIFEST}" .repo/manifests
     repo init -m "${CUSTOM_MANIFEST}"
   fi
   repo sync
 }
 
-compile() {
-  echo Compiling...
-  mkdir -p "${HOME}/lib" "${OUT_DIR}/bin"
+prepare_source() {
+  if [ "$(ls -A $SOURCE_DIR)" ]; then
+    echo "${SOURCE_DIR} is non empty. Run this from an empty directory if you wish to fetch the source." 1>&2
+    exit 2
+  fi
+  fetch_source
+}
 
-  # Hack to make minigbm work
-  rm -rf "${HOME}/usr"
-  ln -s "${HOME}" "${HOME}/usr"
+resync_source() {
+  echo "Deleting source directory..."
+  rm -rf "${SOURCE_DIR}"
+  fetch_source
+}
 
-  cd "${THIRD_PARTY_ROOT}/minijail"
-  make -j
-  cp libminijail.so "${HOME}/lib/"
-  cp libminijail.so "${LIB_PATH}/"
+compile_minijail() {
+  echo "Compiling Minijail..."
 
-  cd "${THIRD_PARTY_ROOT}/minigbm"
+  cd "${SOURCE_DIR}/third_party/minijail"
+
+  make -j OUT="${WORKING_DIR}"
+
+  cp "${WORKING_DIR}/libminijail.so" "${OUTPUT_LIB_DIR}"
+}
+
+compile_minigbm() {
+  echo "Compiling Minigbm..."
+
+  cd "${SOURCE_DIR}/third_party/minigbm"
+
+  # Minigbm's package config file has a default hard-coded path. Update here so
+  # that dependent packages can find the files.
+  sed -i "s|prefix=/usr\$|prefix=${WORKING_DIR}/usr|" gbm.pc
+
   # The gbm used by upstream linux distros is not compatible with crosvm, which must use Chrome OS's
   # minigbm.
   local cpp_flags=()
@@ -128,51 +156,114 @@ compile() {
     cpp_flags+=(-D"DRV_${drv}")
     make_flags+=("DRV_${drv}"=1)
   done
-  DESTDIR="${HOME}" make -j install \
+
+  make -j install \
     "${make_flags[@]}" \
     CPPFLAGS="${cpp_flags[*]}" \
+    DESTDIR="${WORKING_DIR}" \
+    OUT="${WORKING_DIR}" \
     PKG_CONFIG=pkg-config
-  cp ${HOME}/lib/libgbm.so.1 "${LIB_PATH}/"
 
-  cd "${THIRD_PARTY_ROOT}/libepoxy"
-  if [[ ! -d m4 ]]; then
-    ./autogen.sh --prefix="${HOME}"
-  fi
-  make -j install
-  cp "${HOME}"/lib/libepoxy.so.0 "${LIB_PATH}"/
-
-  # Note: depends on libepoxy
-  cd "${THIRD_PARTY_ROOT}/virglrenderer"
-  ./autogen.sh --prefix=${HOME} PKG_CONFIG_PATH=${HOME}/lib/pkgconfig \
-    --disable-egl \
-    LDFLAGS=-Wl,-rpath,\\\$\$ORIGIN
-  make -j install
-  cp "${HOME}/lib/libvirglrenderer.so.0" "${LIB_PATH}"/
-
-  source $HOME/.cargo/env
-  cd "${PLATFORM_ROOT}/crosvm"
-
-  RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${HOME}/lib" \
-    cargo build --features gpu,x,composite-disk
-
-  # Save the outputs
-  cp Cargo.lock "${OUT_DIR}"
-  cp target/debug/crosvm "${OUT_DIR}/bin/"
-
-  cargo --version --verbose > "${OUT_DIR}/cargo_version.txt"
-  rustup show > "${OUT_DIR}/rustup_show.txt"
-  dpkg-query -W > "${OUT_DIR}/builder-packages.txt"
-  repo manifest -r -o ${OUT_DIR}/manifest.xml
-  echo Results in ${OUT_DIR}
+  cp ${WORKING_DIR}/usr/lib/libgbm.so.1 "${OUTPUT_LIB_DIR}"
 }
 
+compile_epoxy() {
+  cd "${SOURCE_DIR}/third_party/libepoxy"
+
+  meson build \
+    --libdir="${WORKING_DIR}/usr/lib" \
+    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
+    --prefix="${WORKING_DIR}/usr" \
+    -Dglx=no \
+    -Dx11=false \
+    -Degl=yes
+
+  cd build
+
+  ninja install
+
+  cp "${WORKING_DIR}"/usr/lib/libepoxy.so.0 "${OUTPUT_LIB_DIR}"
+}
+
+compile_virglrenderer() {
+  echo "Compiling VirglRenderer..."
+
+    # Note: depends on libepoxy
+  cd "${SOURCE_DIR}/third_party/virglrenderer"
+
+  # Meson doesn't like gbm's version code.
+  sed -i "s|_gbm_ver = '0.0.0'|_gbm_ver = '0'|" meson.build
+
+  # Meson needs to have dependency information for header lookup.
+  sed -i "s|cc.has_header('epoxy/egl.h')|cc.has_header('epoxy/egl.h', dependencies: epoxy_dep)|" meson.build
+
+  # Need to figure out the right way to pass this down...
+  grep "install_rpath" src/meson.build || \
+    sed -i "s|install : true|install : true, install_rpath : '\$ORIGIN',|" src/meson.build
+
+  meson build \
+    --libdir="${WORKING_DIR}/usr/lib" \
+    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
+    --prefix="${WORKING_DIR}/usr" \
+    -Dplatforms=egl \
+    -Dgbm_allocation=false
+
+  cd build
+
+  ninja install
+
+  cp "${WORKING_DIR}/usr/lib/libvirglrenderer.so.1" "${OUTPUT_LIB_DIR}"
+
+  cd "${OUTPUT_LIB_DIR}"
+  ln -s -f "libvirglrenderer.so.1" "libvirglrenderer.so"
+}
+
+compile_crosvm() {
+  echo "Compiling Crosvm..."
+
+  source "${HOME}/.cargo/env"
+  cd "${SOURCE_DIR}/platform/crosvm"
+
+  RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${OUTPUT_LIB_DIR}" \
+    cargo build --features gpu,composite-disk
+
+  # Save the outputs
+  cp Cargo.lock "${OUTPUT_DIR}"
+  cp target/debug/crosvm "${OUTPUT_BIN_DIR}"
+
+  cargo --version --verbose > "${OUTPUT_DIR}/cargo_version.txt"
+  rustup show > "${OUTPUT_DIR}/rustup_show.txt"
+}
+
+compile() {
+  echo "Compiling..."
+  mkdir -p \
+    "${WORKING_DIR}" \
+    "${OUTPUT_DIR}" \
+    "${OUTPUT_BIN_DIR}" \
+    "${OUTPUT_LIB_DIR}"
+
+  compile_minijail
+
+  compile_minigbm
+
+  compile_epoxy
+
+  compile_virglrenderer
+
+  compile_crosvm
+
+  dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
+  repo manifest -r -o "${OUTPUT_DIR}/manifest.xml"
+  echo "Results in ${OUTPUT_DIR}"
+}
 
 arm64_retry() {
   MINIGBM_DRV="RADEON VC4" compile
 }
 
 arm64_build() {
-  rm -rf "${BUILD_OUTPUTS[@]}"
+  rm -rf "${WORKING_DIR}"
   prepare_cargo
   arm64_retry
 }
@@ -182,7 +273,7 @@ x86_64_retry() {
 }
 
 x86_64_build() {
-  rm -rf "${BUILD_OUTPUTS[@]}"
+  rm -rf "${WORKING_DIR}"
   # Cross-compilation is x86_64 specific
   sudo apt install -y crossbuild-essential-arm64
   prepare_cargo aarch64-unknown-linux-gnu
@@ -199,9 +290,12 @@ echo Steps: "$@"
 for i in "$@"; do
   echo $i
   case "$i" in
+    ARCH=*) ARCH="${i/ARCH=/}" ;;
     CUSTOM_MANIFEST=*) CUSTOM_MANIFEST="${i/CUSTOM_MANIFEST=/}" ;;
     arm64_build) $i ;;
     arm64_retry) $i ;;
+    install_packages) $i ;;
+    resync_source) $i ;;
     prepare_source) $i ;;
     x86_64_build) $i ;;
     x86_64_retry) $i ;;
