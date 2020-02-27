@@ -19,6 +19,11 @@ CUSTOM_MANIFEST=""
 set -o errexit
 set -x
 
+fatal_echo() {
+  echo "$@"
+  exit 1
+}
+
 install_packages() {
   echo Installing packages...
   sudo dpkg --add-architecture arm64
@@ -106,11 +111,16 @@ fetch_source() {
     git config --global color.ui false
   fi
 
-  repo init -q -b crosvm-master -u https://android.googlesource.com/platform/manifest
-  if [[ -n "${CUSTOM_MANIFEST}" ]]; then
-    cp "${CUSTOM_MANIFEST}" .repo/manifests
-    repo init -m "${CUSTOM_MANIFEST}"
+  if [[ -z "${CUSTOM_MANIFEST}" ]]; then
+    # Building Crosvm currently depends using Chromium's directory scheme for subproject
+    # directories ('third_party' vs 'external').
+    fatal_echo "CUSTOM_MANIFEST must be provided. You most likely want to provide a full path to" \
+               "a copy of device/google/cuttlefish_vmm/${ARCH}-linux-gnu/manifest.xml."
   fi
+
+  repo init -q -u https://android.googlesource.com/platform/manifest
+  cp "${CUSTOM_MANIFEST}" .repo/manifests
+  repo init -m "${CUSTOM_MANIFEST}"
   repo sync
 }
 
