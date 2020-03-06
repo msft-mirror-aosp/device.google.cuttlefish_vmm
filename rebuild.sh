@@ -17,7 +17,7 @@ DEFINE_string arm_user \
   "vsoc-01" "User to invoke on the ARM system"
 DEFINE_string custom_manifest "" "Custom manifest to use for the build"
 DEFINE_string project "$(gcloud config get-value project)" "Project to use" "p"
-DEFINE_string source_image_family debian-9 "Image familty to use as the base" \
+DEFINE_string source_image_family debian-10 "Image familty to use as the base" \
   "s"
 DEFINE_string source_image_project debian-cloud \
   "Project holding the base image" "m"
