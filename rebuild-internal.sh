@@ -148,7 +148,8 @@ prepare_source() {
 
 resync_source() {
   echo "Deleting source directory..."
-  rm -rf "${SOURCE_DIR}"
+  rm -rf "${SOURCE_DIR}/.*"
+  rm -rf "${SOURCE_DIR}/*"
   fetch_source
 }
 
