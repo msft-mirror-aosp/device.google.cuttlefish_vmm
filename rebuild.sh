@@ -43,7 +43,7 @@ main() {
   set -o errexit
   set -x
   fail=0
-  source_files=("${DIR}"/rebuild_gce.sh)
+  source_files=("${DIR}"/rebuild_internal.sh)
   gce_flags=()
   arm_flags=()
   if [[ -n "${FLAGS_custom_manifest}" ]]; then
@@ -112,7 +112,7 @@ main() {
     gcloud compute ssh "${SSH_FLAGS[@]}" \
       "${project_zone_flags[@]}" \
       "${FLAGS_x86_user}@${FLAGS_x86_instance}" -- \
-        ./rebuild_gce.sh "${gce_flags[@]}" ${_prepare_source[@]} x86_64_build
+        ./rebuild_internal.sh "${gce_flags[@]}" ${_prepare_source[@]} x86_64_build
     gcloud beta compute scp --recurse "${SSH_FLAGS[@]}" \
       "${project_zone_flags[@]}" \
       "${FLAGS_x86_user}@${FLAGS_x86_instance}":x86_64-linux-gnu \
@@ -126,7 +126,7 @@ main() {
       "${source_files[@]}" \
       "${FLAGS_arm_user}@${FLAGS_arm_system}:"
     ssh -t "${FLAGS_arm_user}@${FLAGS_arm_system}" -- \
-        ./rebuild_gce.sh "${arm_flags[@]}" ${_prepare_source[@]} arm64_build
+        ./rebuild-internal.sh "${arm_flags[@]}" ${_prepare_source[@]} arm64_build
     scp -r "${FLAGS_arm_user}@${FLAGS_arm_system}":aarch64-linux-gnu \
       "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
   fi
