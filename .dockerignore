@@ -1,0 +1,7 @@
+.*
+*
+*/*
+*/*/*
+!rebuild-internal.sh
+!x86_64-linux-gnu/manifest.xml
+!aarch64-linux-gnu/manifest.xml
