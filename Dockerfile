@@ -4,6 +4,37 @@ ENV container docker
 ENV LC_ALL C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 
+SHELL [ "/bin/bash", "-c" ]
+
+# Containers built from this image are meant to persist, once started.  A user
+# account is created on them where the work of building crosvm is carried out,
+# persistently.
+
+RUN apt-get update \
+    && apt-get install -y systemd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && rm -f /var/run/nologin
+
+RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
+    /etc/systemd/system/*.wants/* \
+    /lib/systemd/system/local-fs.target.wants/* \
+    /lib/systemd/system/sockets.target.wants/*udev* \
+    /lib/systemd/system/sockets.target.wants/*initctl* \
+    /lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup* \
+    /lib/systemd/system/systemd-update-utmp*
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+CMD ["/lib/systemd/systemd"]
+
+RUN apt update \
+    && apt install -y apt-utils sudo dpkg-dev coreutils \
+       openssh-server openssh-client psmisc iptables iproute2 dnsmasq \
+       net-tools rsyslog equivs
+
+RUN apt install -y dialog
+
 # Set up the user to be the same as the user creating the container.  Not
 # strictly necessary, but this way all the permissions of the generated files
 # will match.
@@ -27,10 +58,13 @@ RUN mkdir /output && chown -R $USER /output
 RUN mkdir /working && chown -R $USER /working
 RUN mkdir /static && chown -R $USER /static
 
-SHELL [ "/bin/bash", "-c" ]
+RUN sed -i -r -e 's/^#{0,1}\s*PasswordAuthentication\s+(yes|no)/PasswordAuthentication yes/g' /etc/ssh/sshd_config \
+    && sed -i -r -e 's/^#{0,1}\s*PermitEmptyPasswords\s+(yes|no)/PermitEmptyPasswords yes/g' /etc/ssh/sshd_config \
+    && sed -i -r -e 's/^#{0,1}\s*ChallengeResponseAuthentication\s+(yes|no)/ChallengeResponseAuthentication no/g' /etc/ssh/sshd_config \
+    && sed -i -r -e 's/^#{0,1}\s*UsePAM\s+(yes|no)/UsePAM no/g' /etc/ssh/sshd_config
 
 USER $USER
-WORKDIR /working
+WORKDIR $HOME
 
 COPY --chown=$USER x86_64-linux-gnu/manifest.xml /static/x86_64-linux-gnu/manifest.xml
 COPY --chown=$USER aarch64-linux-gnu/manifest.xml /static/aarch64-linux-gnu/manifest.xml
@@ -38,8 +72,10 @@ COPY --chown=$USER rebuild-internal.sh /static/rebuild-internal.sh
 
 RUN TOOLS_DIR=/static/tools /static/rebuild-internal.sh install_packages
 
+USER root
+
 VOLUME /source
 VOLUME /working
 VOLUME /output
 
-ENTRYPOINT ["/static/rebuild-internal.sh"]
+# ENTRYPOINT ["/static/rebuild-internal.sh"]
