@@ -34,6 +34,7 @@ WORKDIR $HOME
 
 COPY --chown=$USER x86_64-linux-gnu/manifest.xml /static/x86_64-linux-gnu/manifest.xml
 COPY --chown=$USER aarch64-linux-gnu/manifest.xml /static/aarch64-linux-gnu/manifest.xml
+COPY --chown=$USER custom.xml /static/custom.xml
 COPY --chown=$USER rebuild-internal.sh /static/rebuild-internal.sh
 
 RUN TOOLS_DIR=/static/tools /static/rebuild-internal.sh install_packages
