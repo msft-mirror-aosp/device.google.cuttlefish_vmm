@@ -4,6 +4,8 @@ function container_exists() {
   [[ $(docker ps -a --filter "name=^/$1$" --format '{{.Names}}') == $1 ]] && echo $1;
 }
 
+declare -A map_uname_to_docker_builder_arch=( [aarch64]=linux/arm64 [x86_64]=linux/amd64 )
+
 # inputs
 # $1 = image name
 # $2 = container name
@@ -68,9 +70,12 @@ function build_with_docker() {
       _docker_target+=("${_docker_target[0]}_persistent")
     fi
     if [[ ${_build_image} -eq 1 ]]; then
-      if [[ ${_arch} == aarch64 ]]; then
+      if [[ ${_arch} != $(uname -m) ]]; then
         export DOCKER_CLI_EXPERIMENTAL=enabled
-        docker buildx create --name docker_vmm_${_arch}_builder --platform linux/arm64 --use
+        docker buildx create \
+          --name docker_vmm_${_arch}_builder \
+          --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
+          --use
         for _target in ${_docker_target[@]}; do
           docker buildx build \
             --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
