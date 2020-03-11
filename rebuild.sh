@@ -57,6 +57,10 @@ wait_for_instance() {
   done
 }
 
+function container_exists() {
+  [[ $(docker ps -a --filter "name=^/$1$" --format '{{.Names}}') == $1 ]] && echo $1;
+}
+
 main() {
   set -o errexit
   set -x
@@ -200,6 +204,17 @@ main() {
       echo Options --docker_uid must not be empty 1>&2
       fail=1
     fi
+    if [[ ${_reuse} -eq 1 ]]; then
+        # Volume mapping are specified only when a container is created.
+      if [ -n "${FLAGS_docker_source}" ]; then
+        echo Option --docker_source may not be specified with --reuse 1>&2
+        fail=1
+      fi
+      if [ -n "${FLAGS_docker_working}" ]; then
+        echo Option --docker_working may not be specified with --reuse 1>&2
+        fail=1
+      fi
+    fi
     if [[ "${fail}" -ne 0 ]]; then
       exit "${fail}"
     fi
@@ -210,24 +225,35 @@ main() {
         ${DIR} \
         --build-arg USER=${FLAGS_docker_user} \
         --build-arg UID=${FLAGS_docker_uid}
+      _docker_source=()
+      if [ -n "${FLAGS_docker_source}" ]; then
+        _docker_source+=("-v ${FLAGS_docker_source}:/source:rw")
+      fi
+      _docker_working=()
+      if [ -n "${FLAGS_docker_working}" ]; then
+        _docker_working+=("-v ${FLAGS_docker_working}:/working:rw")
+      fi
+      if [[ -n "$(container_exists ${FLAGS_docker_container})" ]]; then
+        docker rm -f ${FLAGS_docker_container}
+      fi
+      docker run -d \
+        --privileged \
+        --name ${FLAGS_docker_container} \
+        -h ${FLAGS_docker_container} \
+        ${_docker_source} \
+        ${_docker_working} \
+        -v "${FLAGS_docker_output}":/output \
+        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+        ${FLAGS_docker_image}:latest
+    else
+      docker unpause ${FLAGS_docker_container}
     fi
-    _docker_source=()
-    if [ -n "${FLAGS_docker_source}" ]; then
-      _docker_source+=("-v ${FLAGS_docker_source}:/source")
-    fi
-    _docker_working=()
-    if [ -n "${FLAGS_docker_working}" ]; then
-      _docker_working+=("-v ${FLAGS_docker_working}:/working")
-    fi
-    docker run -it --rm \
+    docker exec -it \
       --user ${FLAGS_docker_user} \
-      --name ${FLAGS_docker_container} \
-      ${_docker_source} \
-      ${_docker_working} \
-      -v "${FLAGS_docker_output}":/output \
       ${docker_flags[@]} \
-      ${FLAGS_docker_image}:latest \
-      ${_prepare_source[@]} ${FLAGS_docker_arch}_build
+      ${FLAGS_docker_container} \
+      /static/rebuild-internal.sh ${_prepare_source[@]} ${FLAGS_docker_arch}_build
+    docker pause ${FLAGS_docker_container}
   fi
   exit 0
   gcloud compute instances delete -q \
