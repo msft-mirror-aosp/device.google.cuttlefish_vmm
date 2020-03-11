@@ -4,17 +4,20 @@
 #
 # Rebuilds Crosvm and its dependencies from a clean state.
 
-SOURCE_DIR="$(pwd)/source"
-TOOLS_DIR="$(pwd)/tools"
-WORKING_DIR="$(pwd)/working"
+: ${TOOLS_DIR:="$(pwd)/tools"}
 
-ARCH="$(uname -m)"
-OUTPUT_DIR="$(pwd)/${ARCH}-linux-gnu"
-OUTPUT_BIN_DIR="${OUTPUT_DIR}/bin"
-OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
+setup_env() {
+  : ${SOURCE_DIR:="$(pwd)/source"}
+  : ${WORKING_DIR:="$(pwd)/working"}
+  : ${CUSTOM_MANIFEST:=""}
 
-export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
-CUSTOM_MANIFEST=""
+  ARCH="$(uname -m)"
+  : ${OUTPUT_DIR:="$(pwd)/${ARCH}-linux-gnu"}
+  OUTPUT_BIN_DIR="${OUTPUT_DIR}/bin"
+  OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
+
+  export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
+}
 
 set -o errexit
 set -x
@@ -22,6 +25,31 @@ set -x
 fatal_echo() {
   echo "$@"
   exit 1
+}
+
+prepare_cargo() {
+  echo Setting up cargo...
+  cd
+  rm -rf .cargo
+  # Sometimes curl hangs. When it does, retry
+  retry curl -LO \
+    "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
+  # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
+  chmod +x rustup-init
+  ./rustup-init -y --no-modify-path
+  source $HOME/.cargo/env
+  if [[ -n "$1" ]]; then
+    rustup target add "$1"
+  fi
+  rustup component add rustfmt-preview
+  rm rustup-init
+
+  if [[ -n "$1" ]]; then
+  cat >>~/.cargo/config <<EOF
+[target.$1]
+linker = "${1/-unknown-/-}"
+EOF
+  fi
 }
 
 install_packages() {
@@ -64,6 +92,17 @@ install_packages() {
   # Meson getting started guide mentions that the distro version is frequently
   # outdated and recommends installing via pip.
   pip3 install meson
+
+  case "$(uname -m)" in
+    aarch64)
+      prepare_cargo
+      ;;
+    x86_64)
+      # Cross-compilation is x86_64 specific
+      sudo apt install -y crossbuild-essential-arm64
+      prepare_cargo aarch64-unknown-linux-gnu
+      ;;
+  esac
 }
 
 retry() {
@@ -72,31 +111,6 @@ retry() {
     sleep 1
   done
   return 1
-}
-
-prepare_cargo() {
-  echo Setting up cargo...
-  cd
-  rm -rf .cargo
-  # Sometimes curl hangs. When it does, retry
-  retry curl -LO \
-    "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
-  # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
-  chmod +x rustup-init
-  ./rustup-init -y --no-modify-path
-  source $HOME/.cargo/env
-  if [[ -n "$1" ]]; then
-    rustup target add "$1"
-  fi
-  rustup component add rustfmt-preview
-  rm rustup-init
-
-  if [[ -n "$1" ]]; then
-  cat >>~/.cargo/config <<EOF
-[target.$1]
-linker = "${1/-unknown-/-}"
-EOF
-  fi
 }
 
 fetch_source() {
@@ -268,14 +282,13 @@ compile() {
   echo "Results in ${OUTPUT_DIR}"
 }
 
-arm64_retry() {
+aarch64_retry() {
   MINIGBM_DRV="RADEON VC4" compile
 }
 
-arm64_build() {
-  rm -rf "${WORKING_DIR}"
-  prepare_cargo
-  arm64_retry
+aarch64_build() {
+  rm -rf "${WORKING_DIR}/*"
+  aarch64_retry
 }
 
 x86_64_retry() {
@@ -283,16 +296,13 @@ x86_64_retry() {
 }
 
 x86_64_build() {
-  rm -rf "${WORKING_DIR}"
-  # Cross-compilation is x86_64 specific
-  sudo apt install -y crossbuild-essential-arm64
-  prepare_cargo aarch64-unknown-linux-gnu
+  rm -rf "${WORKING_DIR}/*"
   x86_64_retry
 }
 
 if [[ $# -lt 1 ]]; then
   echo Choosing default config
-  set prepare_source x86_64_build
+  set setup_env prepare_source x86_64_build
 fi
 
 echo Steps: "$@"
@@ -302,15 +312,17 @@ for i in "$@"; do
   case "$i" in
     ARCH=*) ARCH="${i/ARCH=/}" ;;
     CUSTOM_MANIFEST=*) CUSTOM_MANIFEST="${i/CUSTOM_MANIFEST=/}" ;;
-    arm64_build) $i ;;
-    arm64_retry) $i ;;
+    aarch64_build) $i ;;
+    aarch64_retry) $i ;;
+    setup_env) $i ;;
     install_packages) $i ;;
+    fetch_source) $i ;;
     resync_source) $i ;;
     prepare_source) $i ;;
     x86_64_build) $i ;;
     x86_64_retry) $i ;;
     *) echo $i unknown 1>&2
-      echo usage: $0 'arm64_build|arm64_retry|prepare_source|x86_64_build|x86_64_retry ...' 1>&2
+      echo usage: $0 'install_packages|prepare_source|resync_source|fetch_source|$(uname -m)_build|$(uname -m)_retry' 1>&2
        exit 2
        ;;
   esac
