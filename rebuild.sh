@@ -21,11 +21,12 @@ DEFINE_string arm_user "vsoc-01" "User to invoke on the ARM system"
 
 DEFINE_boolean docker false "Build inside docker"
 DEFINE_string docker_arch "$(uname -m)" "Target architectre"
+DEFINE_boolean docker_build_image true "When --noreuse is specified, this flag controls building the docker image (else we assume it was built and reuse it)"
 DEFINE_string docker_image "docker_vmm" "Name of docker image to build"
 DEFINE_string docker_container "docker_vmm" "Name of docker container to create"
 DEFINE_string docker_source "" "Path to sources checked out using manifest"
 DEFINE_string docker_working "" "Path to working directory"
-DEFINE_string docker_output "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/$(uname -m)-linux-gnu" "Output directory"
+DEFINE_string docker_output "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/${FLAGS_docker_arch}-linux-gnu" "Output directory"
 DEFINE_string docker_user "${USER}" "Docker-container user"
 DEFINE_string docker_uid "${UID}" "Docker-container user ID"
 
@@ -190,12 +191,30 @@ build_locally_using_docker() {
     exit "${fail}"
   fi
   if [[ ${_reuse} -eq 0 ]]; then
-    docker build \
-      -f ${DIR}/Dockerfile \
-      -t ${FLAGS_docker_image}:latest \
-      ${DIR} \
-      --build-arg USER=${FLAGS_docker_user} \
-      --build-arg UID=${FLAGS_docker_uid}
+    local _docker_image=${FLAGS_docker_image}_${FLAGS_docker_arch};
+    if [[ ${FLAGS_docker_build_image} -eq ${FLAGS_TRUE} ]]; then
+      if [[ ${FLAGS_docker_arch} == aarch64 ]]; then
+        export DOCKER_CLI_EXPERIMENTAL=enabled
+        docker buildx create --name docker_vmm_${FLAGS_docker_arch}_builder --platform linux/arm64 --use
+        docker buildx build \
+          --platform linux/arm64 \
+          -f ${DIR}/Dockerfile \
+          -t ${_docker_image}:latest \
+          ${DIR} \
+          --build-arg USER=${FLAGS_docker_user} \
+          --build-arg UID=${FLAGS_docker_uid} \
+          --load
+        docker buildx rm docker_vmm_${FLAGS_docker_arch}_builder
+        unset DOCKER_CLI_EXPERIMENTAL
+      else
+        docker build \
+          -f ${DIR}/Dockerfile \
+          -t ${_docker_image}:latest \
+          ${DIR} \
+          --build-arg USER=${FLAGS_docker_user} \
+          --build-arg UID=${FLAGS_docker_uid}
+      fi
+    fi
     _docker_source=()
     if [ -n "${FLAGS_docker_source}" ]; then
       _docker_source+=("-v ${FLAGS_docker_source}:/source:rw")
@@ -207,15 +226,20 @@ build_locally_using_docker() {
     if [[ -n "$(container_exists ${FLAGS_docker_container})" ]]; then
       docker rm -f ${FLAGS_docker_container}
     fi
+    local _docker_output=${FLAGS_docker_output}
+    if [[ "${_docker_output}" == "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/$(uname -m)-linux-gnu" && \
+          "$(uname -m)" != ${FLAGS_docker_arch} ]]; then
+      _docker_output="${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/${FLAGS_docker_arch}-linux-gnu"
+    fi
     docker run -d \
       --privileged \
       --name ${FLAGS_docker_container} \
       -h ${FLAGS_docker_container} \
       ${_docker_source} \
       ${_docker_working} \
-      -v "${FLAGS_docker_output}":/output \
+      -v "${_docker_output}":/output:rw \
       -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-      ${FLAGS_docker_image}:latest
+      ${_docker_image}:latest
   else
     docker unpause ${FLAGS_docker_container}
   fi
