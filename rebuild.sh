@@ -43,8 +43,10 @@ DEFINE_string gce_zone "$(gcloud config get-value compute/zone)" "Zone to use" "
 
 # Common options
 
+# The /./ pattern in the path defition below is interpreted by rsync; do not
+# remove it!
 DEFINE_string manifest \
-          "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/$(uname -m)-linux-gnu/manifest.xml" \
+          "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/./$(uname -m)-linux-gnu/manifest.xml" \
           "manifest to use for the build"
 DEFINE_boolean reuse false "Set to true to reuse a previously-set-up instance."
 DEFINE_boolean reuse_resync false "Reuse a previously-set-up instance, but clean and re-sync the sources. Overrides --reuse if both are specified."
@@ -59,46 +61,13 @@ wait_for_instance() {
   done
 }
 
-function container_exists() {
-  [[ $(docker ps -a --filter "name=^/$1$" --format '{{.Names}}') == $1 ]] && echo $1;
-}
-
-# inputs
-# $1 = FLAGS_docker_image
-# $2 = FLAGS_docker_container
-# $3 = FLAGS_docker_arch
-# $4 = FLAGS_docker_user
-# $5 = FLAGS_docker_uid
-# $6 = FLAGS_docker_persistent
-# $7 = FLAGS_docker_source
-# $8 = FLAGS_docker_working
-# $9 = FLAGS_docker_output
-# $10 = _reuse
-# $11 = docker_flags
-# $12 = _prepare_source
-# $13 = USE
-build_locally_using_docker() {
+check_common_docker_options() {
   if [[ -z "${FLAGS_docker_image}" ]]; then
     echo Option --docker_image must not be empty 1>&1
     fail=1
   fi
   if [[ -z "${FLAGS_docker_container}" ]]; then
     echo Options --docker_container must not be empty 1>&2
-    fail=1
-  fi
-  case "${FLAGS_docker_arch}" in
-    aarch64) ;;
-    x86_64) ;;
-    *) echo Invalid value ${FLAGS_docker_arch} for --docker_arch 1>&2
-      fail=1
-      ;;
-  esac
-  if [[ -z "${FLAGS_docker_user}" ]]; then
-    echo Options --docker_user must not be empty 1>&2
-    fail=1
-  fi
-  if [[ -z "${FLAGS_docker_uid}" ]]; then
-    echo Options --docker_uid must not be empty 1>&2
     fail=1
   fi
   # Volume mapping are specified only when a container is created.  With
@@ -120,94 +89,56 @@ build_locally_using_docker() {
   if [[ "${fail}" -ne 0 ]]; then
     exit "${fail}"
   fi
-  local _docker_source=
-  if [ -n "${FLAGS_docker_source}" ]; then
-    _docker_source="-v ${FLAGS_docker_source}:/source:rw"
+}
+
+build_locally_using_docker() {
+  check_common_docker_options
+  case "${FLAGS_docker_arch}" in
+    aarch64) ;;
+    x86_64) ;;
+    *) echo Invalid value ${FLAGS_docker_arch} for --docker_arch 1>&2
+      fail=1
+      ;;
+  esac
+  if [[ -z "${FLAGS_docker_user}" ]]; then
+    echo Options --docker_user must not be empty 1>&2
+    fail=1
   fi
-  local _docker_working=
-  if [ -n "${FLAGS_docker_working}" ]; then
-    _docker_working="-v ${FLAGS_docker_working}:/working:rw"
+  if [[ -z "${FLAGS_docker_uid}" ]]; then
+    echo Options --docker_uid must not be empty 1>&2
+    fail=1
   fi
-  local _docker_output=${FLAGS_docker_output}
+  if [[ "${fail}" -ne 0 ]]; then
+    exit "${fail}"
+  fi
+  local -i _persistent=0
+  if [[ ${FLAGS_persistent} -eq ${FLAGS_TRUE} ]]; then
+    _persistent=1
+  fi
+  local -i _build_image=0
+  if [[ ${FLAGS_docker_build_image} -eq ${FLAGS_TRUE} ]]; then
+    _build_image=1
+  fi
+  local _docker_output="${FLAGS_docker_output}"
   if [[ "${_docker_output}" == "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/$(uname -m)-linux-gnu" && \
         "$(uname -m)" != ${FLAGS_docker_arch} ]]; then
     _docker_output="${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/${FLAGS_docker_arch}-linux-gnu"
   fi
-  local _docker_image=${FLAGS_docker_image}_${FLAGS_docker_arch};
-  if [[ ${FLAGS_docker_persistent} -eq ${FLAGS_TRUE} ]]; then
-    _docker_image=${FLAGS_docker_image}_${FLAGS_docker_arch}_persistent;
-  fi
-  local _build_or_retry=${FLAGS_docker_arch}_retry
-  if [[ ${_reuse} -eq 0 ]]; then
-    _build_or_retry=${FLAGS_docker_arch}_build
-    local _docker_target=()
-    _docker_target+=("${FLAGS_docker_image}");
-    if [[ ${FLAGS_docker_persistent} -eq ${FLAGS_TRUE} ]]; then
-      _docker_target+=("${FLAGS_docker_image}_persistent");
-    fi
-    if [[ ${FLAGS_docker_build_image} -eq ${FLAGS_TRUE} ]]; then
-      if [[ ${FLAGS_docker_arch} == aarch64 ]]; then
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        docker buildx create --name docker_vmm_${FLAGS_docker_arch}_builder --platform linux/arm64 --use
-        for _target in ${_docker_target[@]}; do
-          docker buildx build \
-            --platform linux/arm64 \
-            --target ${_target} \
-            -f ${DIR}/Dockerfile \
-            -t ${_docker_image}:latest \
-            ${DIR} \
-            --build-arg USER=${FLAGS_docker_user} \
-            --build-arg UID=${FLAGS_docker_uid} --load
-        done
-        docker buildx rm docker_vmm_${FLAGS_docker_arch}_builder
-        unset DOCKER_CLI_EXPERIMENTAL
-      else
-        for _target in ${_docker_target[@]}; do
-          docker build \
-            -f ${DIR}/Dockerfile \
-            --target ${_target} \
-            -t ${_docker_image}:latest \
-            ${DIR} \
-            --build-arg USER=${FLAGS_docker_user} \
-            --build-arg UID=${FLAGS_docker_uid}
-        done
-      fi
-    fi
-    if [[ ${FLAGS_docker_persistent} -eq ${FLAGS_TRUE} ]]; then
-      if [[ -n "$(container_exists ${FLAGS_docker_container})" ]]; then
-        docker rm -f ${FLAGS_docker_container}
-      fi
-      docker run -d \
-        --privileged \
-        --name ${FLAGS_docker_container} \
-        -h ${FLAGS_docker_container} \
-        ${_docker_source} \
-        ${_docker_working} \
-        -v "${_docker_output}":/output:rw \
-        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-        ${_docker_image}:latest
-    fi
-  fi
-  if [[ ${FLAGS_docker_persistent} -eq ${FLAGS_TRUE} ]]; then
-    if [[ "$(docker inspect --format='{{.State.Status}}' ${FLAGS_docker_container})" == "paused" ]]; then
-      docker unpause ${FLAGS_docker_container}
-    fi
-    docker exec -it \
-      --user ${FLAGS_docker_user} \
-      ${docker_flags[@]} \
-      ${FLAGS_docker_container} \
-      /static/rebuild-internal.sh ${_prepare_source[@]} ${_build_or_retry}
-    docker pause ${FLAGS_docker_container}
-  else
-    docker run -it --rm \
-      --user ${FLAGS_docker_user} \
-      ${docker_flags[@]} \
-      ${_docker_source} \
-      ${_docker_working} \
-      -v "${_docker_output}":/output:rw \
-      ${_docker_image}:latest \
-      /static/rebuild-internal.sh ${_prepare_source[@]} ${_build_or_retry}
-  fi
+  ${DIR}/rebuild-docker.sh "${FLAGS_docker_image}" \
+                     "${FLAGS_docker_container}" \
+                     "${FLAGS_docker_arch}" \
+                     "${FLAGS_docker_user}" \
+                     "${FLAGS_docker_uid}" \
+                     "${_persistent}" \
+                     "x${FLAGS_docker_source}" \
+                     "x${FLAGS_docker_working}" \
+                     "x${_docker_output}" \
+                     "${_reuse}" \
+                     "${_build_image}" \
+                     "${DIR}/Dockerfile" \
+                     "${DIR}" \
+                     "${#docker_flags[@]}" "${docker_flags[@]}" \
+                     "${#_prepare_source[@]}" "${_prepare_source[@]}"
 }
 
 function build_on_gce() {
@@ -283,6 +214,11 @@ function build_on_gce() {
 }
 
 function build_on_arm_board() {
+  check_common_docker_options
+  if [[ "${FLAGS_docker_arch}" != "aarch64" ]]; then
+    echo ARM board supports building only aarch64 1>&2
+    fail=1
+  fi
   if [[ -z "${FLAGS_arm_instance}" ]]; then
     echo Must specify IP address of ARM board 1>&2
     fail=1
@@ -294,29 +230,59 @@ function build_on_arm_board() {
   if [[ "${fail}" -ne 0 ]]; then
     exit "${fail}"
   fi
-  scp \
-    "${source_files[@]}" \
-    "${FLAGS_arm_user}@${FLAGS_arm_instance}:"
-  if [ ${_reuse} -eq 0 ]; then
+  if [[ "${_reuse}" -eq 0 ]]; then
     ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
-      ./rebuild-internal.sh install_packages
-    ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
-      ./rebuild-internal.sh "${arm_flags[@]}" ${_prepare_source[@]} '$(uname -m)_build'
-  else
-    ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
-      ./rebuild-internal.sh "${arm_flags[@]}" ${_prepare_source[@]} '$(uname -m)_retry'
+      rm -rf '$PWD/docker'
   fi
-  scp -r "${FLAGS_arm_user}@${FLAGS_arm_instance}":aarch64-linux-gnu \
-    "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
+  rsync -avR -e ssh \
+    "${source_files[@]}" \
+    "${FLAGS_arm_user}@${FLAGS_arm_instance}:~/docker/"
+
+  local -i _persistent=0
+  if [[ ${FLAGS_persistent} -eq ${FLAGS_TRUE} ]]; then
+    _persistent=1
+  fi
+  local -i _build_image=0
+  if [[ ${FLAGS_docker_build_image} -eq ${FLAGS_TRUE} ]]; then
+    _build_image=1
+  fi
+  ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
+    mkdir -p '$PWD/docker/source' '$PWD/docker/working' '$PWD/docker/output'
+  ssh -t "${FLAGS_arm_user}@${FLAGS_arm_instance}" -- \
+    ./docker/rebuild-docker.sh "${FLAGS_docker_image}" \
+                     "${FLAGS_docker_container}" \
+                     "${FLAGS_docker_arch}" \
+                     '${USER}' \
+                     '${UID}' \
+                     "${_persistent}" \
+                     'x$PWD/docker/source' \
+                     'x$PWD/docker/working' \
+                     'x$PWD/docker/output' \
+                     "${_reuse}" \
+                     "${_build_image}" \
+                     '~/docker/Dockerfile' \
+                     '~/docker/' \
+                     "${#docker_flags[@]}" "${docker_flags[@]}" \
+                     "${#_prepare_source[@]}" "${_prepare_source[@]}"
+
+  rsync -avR -e ssh "${FLAGS_arm_user}@${FLAGS_arm_instance}":docker/output/./ \
+    "${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm/${FLAGS_docker_arch}-linux-gnu"
 }
 
 main() {
   set -o errexit
   set -x
   fail=0
-  source_files=("${DIR}"/rebuild-internal.sh)
+  # The /./ patterns in the path defitions below are interpreted by rsync; do not
+  # remove them!
+  source_files=("${DIR}"/./rebuild-docker.sh \
+                "${DIR}"/./rebuild-internal.sh \
+                "${DIR}"/./Dockerfile \
+                "${DIR}"/./x86_64-linux-gnu/manifest.xml \
+                "${DIR}"/./aarch64-linux-gnu/manifest.xml \
+                "${DIR}"/./.dockerignore)
   # These must match the definitions in the Dockerfile
-  docker_flags=("-e SOURCE_DIR=/source" "-e WORKING_DIR=/working" "-e OUTPUT_DIR=/output" "-e TOOLS_DIR=/static/tools")
+  docker_flags=("-eSOURCE_DIR=/source" "-eWORKING_DIR=/working" "-eOUTPUT_DIR=/output" "-eTOOLS_DIR=/static/tools")
   gce_flags=()
   arm_flags=()
 
@@ -331,12 +297,12 @@ main() {
       exit 2
     fi
     source_files+=("${FLAGS_manifest}")
-    docker_flags+=("-e CUSTOM_MANIFEST=/static/${FLAGS_docker_arch}-linux-gnu/$(basename ${FLAGS_manifest})")
+    docker_flags+=("-eCUSTOM_MANIFEST=/static/${FLAGS_docker_arch}-linux-gnu/$(basename ${FLAGS_manifest})")
     gce_flags+=("CUSTOM_MANIFEST=/home/${FLAGS_gce_user}/$(basename "${FLAGS_manifest}")")
     arm_flags+=("CUSTOM_MANIFEST=/home/${FLAGS_arm_user}/$(basename "${FLAGS_manifest}")")
   fi
-  local _prepare_source=(setup_env fetch_source);
-  local _reuse=0
+  local -a _prepare_source=(setup_env fetch_source);
+  local -i _reuse=0
   if [[ ${FLAGS_reuse} -eq ${FLAGS_TRUE} ]]; then
     # neither install packages, nor sync sources; skip to building them
     _prepare_source=(setup_env)
@@ -354,7 +320,7 @@ main() {
       "${project_zone_flags[@]}" \
       "${FLAGS_gce_instance}"
   fi
-  if [ ${FLAGS_arm} -eq ${FLAGS_TRUE} ]; then
+  if [[ ${FLAGS_arm} -eq ${FLAGS_TRUE} ]]; then
     build_on_arm_board
     exit 0
   fi
