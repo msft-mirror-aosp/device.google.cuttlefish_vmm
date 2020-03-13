@@ -156,7 +156,7 @@ resync_source() {
 compile_minijail() {
   echo "Compiling Minijail..."
 
-  cd "${SOURCE_DIR}/third_party/minijail"
+  cd "${SOURCE_DIR}/aosp/external/minijail"
 
   make -j OUT="${WORKING_DIR}"
 
