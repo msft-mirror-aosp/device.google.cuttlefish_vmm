@@ -93,6 +93,10 @@ install_packages() {
   # outdated and recommends installing via pip.
   pip3 install meson
 
+  # Tools for building gfxstream
+  pip3 install absl-py
+  pip3 install urlfetch
+
   case "$(uname -m)" in
     aarch64)
       prepare_cargo
@@ -243,14 +247,41 @@ compile_virglrenderer() {
   ln -s -f "libvirglrenderer.so.1" "libvirglrenderer.so"
 }
 
+compile_gfxstream() {
+  echo "Compiling gfxstream..."
+
+    # Note: depends on libepoxy
+  cd "${SOURCE_DIR}/external/qemu"
+
+  # TODO: Fix or remove network unit tests that are failing in docker,
+  # so we can take out "notests"
+  python3 android/build/python/cmake.py --gfxstream_only --notests
+  local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
+
+  cp "${dist_dir}/libc++.so.1" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libemugl_common.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libOpenglRender.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libEGL_translator.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libGLES_CM_translator.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libGLES_V2_translator.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libgfxstream_backend.so" "${OUTPUT_LIB_DIR}"
+}
+
 compile_crosvm() {
   echo "Compiling Crosvm..."
 
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
+  local crosvm_features=gpu,composite-disk
+
+  if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
+      crosvm_features+=,gfxstream
+  fi
+
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${OUTPUT_LIB_DIR}" \
-    cargo build --features gpu,composite-disk
+    cargo build --features ${crosvm_features}
 
   # Save the outputs
   cp Cargo.lock "${OUTPUT_DIR}"
@@ -276,6 +307,11 @@ compile() {
 
   compile_virglrenderer
 
+  # TODO: Finish the aarch64 cross/native gfxstream build
+  if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
+      compile_gfxstream
+  fi
+
   compile_crosvm
 
   dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
@@ -293,7 +329,7 @@ aarch64_build() {
 }
 
 x86_64_retry() {
-  MINIGBM_DRV="I915 RADEON VC4" compile
+  MINIGBM_DRV="I915 RADEON VC4" BUILD_GFXSTREAM=1 compile
 }
 
 x86_64_build() {
