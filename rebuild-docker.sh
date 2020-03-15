@@ -72,10 +72,14 @@ function build_with_docker() {
     if [[ ${_build_image} -eq 1 ]]; then
       if [[ ${_arch} != $(uname -m) ]]; then
         export DOCKER_CLI_EXPERIMENTAL=enabled
+        # from
+        # https://community.arm.com/developer/tools-software/tools/b/tools-software-ides-blog/posts/getting-started-with-docker-for-arm-on-linux
+        docker run --rm --privileged docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
         docker buildx create \
           --name docker_vmm_${_arch}_builder \
           --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
           --use
+        docker buildx inspect --bootstrap
         for _target in ${_docker_target[@]}; do
           docker buildx build \
             --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
