@@ -358,12 +358,13 @@ main() {
   set -o errexit
   set -x
   fail=0
-  relative_source_files=(rebuild-docker.sh \
-                rebuild-internal.sh \
-                Dockerfile \
-                x86_64-linux-gnu/manifest.xml \
-                aarch64-linux-gnu/manifest.xml \
-                .dockerignore)
+  relative_source_files=("rebuild-docker.sh"
+     "rebuild-internal.sh"
+     "Dockerfile"
+     "x86_64-linux-gnu/manifest.xml"
+     "aarch64-linux-gnu/manifest.xml"
+     "policy-inliner.sh"
+     ".dockerignore")
   # These must match the definitions in the Dockerfile
   docker_flags=("-eSOURCE_DIR=/source" "-eWORKING_DIR=/working" "-eOUTPUT_DIR=/output" "-eTOOLS_DIR=/static/tools")
 

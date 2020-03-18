@@ -18,12 +18,12 @@ declare -A map_uname_to_docker_builder_arch=( [aarch64]=linux/arm64 [x86_64]=lin
 # $9 = path to output dir
 # $10 = reuse image/container? (0: no reuse; 1: reuse image; 2: reuse container)
 # $11 = build image (when reuse = 0)
-# $11 = path to Dockerfile
-# $12 = path to docker context dir
-# $13 = docker_flags_len
-# $14 = (docker_flags)
-# $15 = _prepare_source_len
-# $16 = (_prepare_source)
+# $12 = path to Dockerfile
+# $13 = path to docker context dir
+# $14 = docker_flags_len
+# $15 = (docker_flags)
+# $16 = _prepare_source_len
+# $17 = (_prepare_source)
 function build_with_docker() {
   set -o errexit
   set -x
