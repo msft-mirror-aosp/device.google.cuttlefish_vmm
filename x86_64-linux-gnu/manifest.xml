@@ -1,18 +1,47 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <manifest>
   <remote fetch=".." name="aosp" review="https://android-review.googlesource.com/"/>
-  
   <default remote="aosp" revision="crosvm-master" sync-j="4"/>
-  
   <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
-  
-  <project groups="pdk" name="platform/external/adhd" path="third_party/adhd" revision="ced4ae2804e81b77fc3e9b15798bc93af984cd7f" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="f96646779d6ce8b66d7e26654c36dc74ed1de28d" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/libepoxy" path="third_party/libepoxy" revision="174d1194015fb352615417da636ca26d6a4829b6" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/adhd" path="third_party/adhd" revision="a3e81aa1cef605f2a1b3deb4dcf3e992ec1d602e" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="663072a60425a907bbbb2f25aa55f26e1eb01295" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/libepoxy" path="third_party/libepoxy" revision="199985a9b74aa5610a2ce75be2997e7a272dd9fe" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/minigbm" path="third_party/minigbm" revision="82e37a6c196d089140bf71a83dc0f6042d22ffd2" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/minijail" path="third_party/minijail" revision="52f6adabb6f44761cc23a226cc396bd5c664641c" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="4bb71f3c39031ea0ed238dacaf9349091d64394f" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/minijail" path="aosp/external/minijail" revision="2b12228001b843327eea78230295dff9813e6b16" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="f0c2fba5827abb3634b1992855264d7fe990b89d" upstream="crosvm-master"/>
   <project groups="adt-infra,cts,developers,motodev,pdk,tools,tradefed" name="platform/tools/repohooks" path="tools/repohooks" revision="8eb7cd76622697f630a52cfcaf14a4971be21e38" upstream="crosvm-master"/>
-  
   <repo-hooks enabled-list="pre-upload" in-project="platform/tools/repohooks"/>
+  <project name="platform/external/libpng" path="external/libpng" revision="5d19b1bb0f5694f2ae47b3cc2ccfeb571764b439" clone-depth="1"/>
+  <project name="platform/external/tinyobjloader" path="external/tinyobjloader" revision="d16a940067fbc191364fc1d3e2a2d907209c9320" clone-depth="1"/>
+  <project name="platform/prebuilts/android-emulator-build/mesa-deps" path="prebuilts/android-emulator-build/mesa-deps" revision="17837fdb1889014fa01cbbbda56afc9b6034815f" clone-depth="1"/>
+  <project name="platform/external/grpc-grpc" path="external/grpc" revision="b864fad91e669ea0c8472e147999278623757762" clone-depth="1"/>
+  <project name="platform/external/deqp" path="external/deqp" revision="393a348317e8e94e06a4f17ed130d6c2d30839b3" clone-depth="1"/>
+  <project name="platform/external/ffmpeg" path="external/ffmpeg" revision="5c6f92dd1b16590153367ce79ed9b098cace354f" clone-depth="1"/>
+  <project name="platform/prebuilts/ninja/linux-x86" path="prebuilts/ninja/linux-x86" revision="7ef4cb95e1ed4305e99f03a8e8ad28d26134a45b" clone-depth="1"/>
+  <project name="platform/prebuilts/android-emulator-build/mesa" path="prebuilts/android-emulator-build/mesa" revision="be7c00f399b415511d73308f0af0c0310512aced" clone-depth="1"/>
+  <project name="platform/prebuilts/cmake/linux-x86" path="prebuilts/cmake/linux-x86" revision="40dcb6f55bd2e8731e3e4f1a1721f7ff0fb83cb1" clone-depth="1"/>
+  <project name="platform/external/google-benchmark" path="external/google-benchmark" revision="db1632fadc79df388a2a7248157c965ee40248a1" clone-depth="1"/>
+  <project name="device/generic/goldfish-opengl" path="device/generic/goldfish-opengl" revision="0e0fd228fa55a7a584eed431dbc7cd98bebd0727" clone-depth="1"/>
+  <project name="platform/prebuilts/android-emulator-build/common" path="prebuilts/android-emulator-build/common" revision="2b1b9c223bca1a8dc9c0249192e61453d267d741" clone-depth="1"/>
+  <project name="platform/external/libyuv" path="external/libyuv" revision="89330bce50a357e32dd12e28363cd7dc64f1924c" clone-depth="1"/>
+  <project name="platform/external/libffi" path="external/libffi" revision="30bc66eb2043d8434e94f29beda87001e58c2a34" clone-depth="1"/>
+  <project name="platform/external/lz4" path="external/lz4" revision="1a184fdeb99f4cc11b774ac5b0b824b38105ec6c" clone-depth="1"/>
+  <project name="platform/external/protobuf" path="external/protobuf" revision="2f02425e36d8e662f7c3e1968452d032af233aa2" clone-depth="1"/>
+  <project name="platform/external/curl" path="external/curl" revision="1da4b04273638c8afe6f88bd7a7ccfb693640773" clone-depth="1"/>
+  <project name="platform/external/c-ares" path="external/cares" revision="bdf653f0f9cbcccd64c43630929db8cfde337091" clone-depth="1"/>
+  <project name="platform/external/googletest" path="external/googletest" revision="739d078a704963f0d19345bc6a3491b8b8232b9c" clone-depth="1"/>
+  <project name="platform/external/astc-codec" path="external/astc-codec" revision="17ae36822a8084f45ae51f9031e81f8318254f33" clone-depth="1"/>
+  <project name="platform/prebuilts/clang/host/linux-x86" path="prebuilts/clang/host/linux-x86" revision="3571a32bad7b3ab9b05dcc64d066ef280bca2640" clone-depth="1"/>
+  <project name="platform/prebuilts/android-emulator-build/protobuf" path="prebuilts/android-emulator-build/protobuf" revision="8e2a5472dd374e6c971d30eb3d00898a8c1a25c8" clone-depth="1"/>
+  <project name="platform/external/boringssl" path="external/boringssl" revision="0dcd4e8262f521f08a8302051ad6c81489f05754" clone-depth="1"/>
+  <project name="platform/external/nasm" path="external/nasm" revision="4a1f910150bed6d8afd9c7f89a437ca7060cdaee" clone-depth="1"/>
+  <project name="device/generic/vulkan-cereal" path="device/generic/vulkan-cereal" revision="ea978cef5a41c292dd9bd0ce9bf08648e76ca030" clone-depth="1"/>
+  <project name="platform/external/libvpx" path="external/libvpx" revision="62332cf39b0302e240acb10ed78d61d5ea282a39" clone-depth="1"/>
+  <project name="platform/external/angle" path="external/angle" revision="c37c696b94bd7ddecc12a2c3192f5e48eae7842e" clone-depth="1"/>
+  <project name="platform/prebuilts/android-emulator-build/qemu-android-deps" path="prebuilts/android-emulator-build/qemu-android-deps" revision="e3e1083f445fb89dc899639a2b3c4254c7daf489" clone-depth="1"/>
+  <project name="platform/prebuilts/android-emulator-build/curl" path="prebuilts/android-emulator-build/curl" revision="95f56cc6a903e335d2e90ecce6b4db8d88491bf1" clone-depth="1"/>
+  <project name="platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" path="prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" revision="4533a4d0efa68949dc3c0dfec00214feaddd6c7b" clone-depth="1"/>
+  <project name="platform/external/google-breakpad" path="external/google-breakpad" revision="a1414818b9f9810a3b45f1f55d9c00f5116ec7d9" clone-depth="1"/>
+  <project name="platform/external/qemu" path="external/qemu" revision="fc737e300f3c4eeaa0f7920d3ba7eaf622e598bd" clone-depth="1"/>
+  <project name="platform/external/zlib" path="external/zlib" revision="7656f9eff09cc38244978773777ee64b7b31155d" clone-depth="1"/>
 </manifest>
