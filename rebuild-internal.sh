@@ -14,6 +14,8 @@ setup_env() {
   ARCH="$(uname -m)"
   : ${OUTPUT_DIR:="$(pwd)/${ARCH}-linux-gnu"}
   OUTPUT_BIN_DIR="${OUTPUT_DIR}/bin"
+  OUTPUT_ETC_DIR="${OUTPUT_DIR}/etc"
+  OUTPUT_SECCOMP_DIR="${OUTPUT_ETC_DIR}/seccomp"
   OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
 
   export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
@@ -50,6 +52,21 @@ prepare_cargo() {
 linker = "${1/-unknown-/-}"
 EOF
   fi
+}
+
+install_custom_scripts() {
+  # install our custom utility script used by $0 to ${TOOLS_DIR}
+  echo "Installing custom scripts..."
+  SCRIPTS_TO_INSTALL=("/static/policy-inliner.sh")
+  mkdir -p ${TOOLS_DIR} || /bin/true
+  for scr in ${SCRIPTS_TO_INSTALL[@]}; do
+    if ! [[ -f $scr ]]; then
+      >&2 echo "$scr must exist but does not"
+     exit 10
+    fi
+    chmod a+x $scr
+    cp -f $scr ${TOOLS_DIR}
+  done
 }
 
 install_packages() {
@@ -92,6 +109,10 @@ install_packages() {
   # Meson getting started guide mentions that the distro version is frequently
   # outdated and recommends installing via pip.
   pip3 install meson
+
+  # Tools for building gfxstream
+  pip3 install absl-py
+  pip3 install urlfetch
 
   case "$(uname -m)" in
     aarch64)
@@ -156,7 +177,7 @@ resync_source() {
 compile_minijail() {
   echo "Compiling Minijail..."
 
-  cd "${SOURCE_DIR}/third_party/minijail"
+  cd "${SOURCE_DIR}/aosp/external/minijail"
 
   make -j OUT="${WORKING_DIR}"
 
@@ -243,14 +264,41 @@ compile_virglrenderer() {
   ln -s -f "libvirglrenderer.so.1" "libvirglrenderer.so"
 }
 
+compile_gfxstream() {
+  echo "Compiling gfxstream..."
+
+    # Note: depends on libepoxy
+  cd "${SOURCE_DIR}/external/qemu"
+
+  # TODO: Fix or remove network unit tests that are failing in docker,
+  # so we can take out "notests"
+  python3 android/build/python/cmake.py --gfxstream_only --notests
+  local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
+
+  cp "${dist_dir}/libc++.so.1" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libemugl_common.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libOpenglRender.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libEGL_translator.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libGLES_CM_translator.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libGLES_V2_translator.so" "${OUTPUT_LIB_DIR}"
+  cp "${dist_dir}/libgfxstream_backend.so" "${OUTPUT_LIB_DIR}"
+}
+
 compile_crosvm() {
   echo "Compiling Crosvm..."
 
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
+  local crosvm_features=gpu,composite-disk
+
+  if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
+      crosvm_features+=,gfxstream
+  fi
+
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${OUTPUT_LIB_DIR}" \
-    cargo build --features gpu,composite-disk
+    cargo build --features ${crosvm_features}
 
   # Save the outputs
   cp Cargo.lock "${OUTPUT_DIR}"
@@ -260,12 +308,41 @@ compile_crosvm() {
   rustup show > "${OUTPUT_DIR}/rustup_show.txt"
 }
 
+compile_crosvm_seccomp() {
+  # note that this depends on compile_crosvm
+  #
+  # for aarch64, this function should do nothing
+  # as the aarch64 subdirectory does not exist yet
+  #
+  echo "Processing Crosvm Seccomp..."
+
+  cd "${SOURCE_DIR}/platform/crosvm"
+  case ${ARCH} in
+    x86_64) subdir="${ARCH}" ;;
+    amd64) subdir="x86_64" ;;
+    arm64) return 0 ;;
+    aarch64) return 0 ;;
+#    uncomment these two lines when crosvm sandbox for aarch64 is supported
+#    arm64) subdir="aarch64" ;;
+#    aarch64) subdir="aarch64" ;;
+    *)
+      echo "${ARCH} is not supported"
+      exit 15
+  esac
+  policy-inliner.sh \
+    -p $(pwd)/seccomp/$subdir \
+    -o ${OUTPUT_SECCOMP_DIR} \
+    -c $(pwd)/seccomp/$subdir/common_device.policy
+}
+
 compile() {
   echo "Compiling..."
   mkdir -p \
     "${WORKING_DIR}" \
     "${OUTPUT_DIR}" \
     "${OUTPUT_BIN_DIR}" \
+    "${OUTPUT_ETC_DIR}" \
+    "${OUTPUT_SECCOMP_DIR}" \
     "${OUTPUT_LIB_DIR}"
 
   compile_minijail
@@ -276,7 +353,14 @@ compile() {
 
   compile_virglrenderer
 
+  # TODO: Finish the aarch64 cross/native gfxstream build
+  if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
+      compile_gfxstream
+  fi
+
   compile_crosvm
+
+  compile_crosvm_seccomp
 
   dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
   repo manifest -r -o "${OUTPUT_DIR}/manifest.xml"
@@ -293,7 +377,7 @@ aarch64_build() {
 }
 
 x86_64_retry() {
-  MINIGBM_DRV="I915 RADEON VC4" compile
+  MINIGBM_DRV="I915 RADEON VC4" BUILD_GFXSTREAM=1 compile
 }
 
 x86_64_build() {
@@ -316,6 +400,7 @@ for i in "$@"; do
     aarch64_build) $i ;;
     aarch64_retry) $i ;;
     setup_env) $i ;;
+    install_custom_scripts) $i ;;
     install_packages) $i ;;
     fetch_source) $i ;;
     resync_source) $i ;;

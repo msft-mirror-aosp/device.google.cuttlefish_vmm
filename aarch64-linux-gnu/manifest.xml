@@ -6,11 +6,11 @@
   
   <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
   
-  <project groups="pdk" name="platform/external/adhd" path="third_party/adhd" revision="e65070b653154252b7c66ec983c8df842f932f77" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="827f1192f97f815b3ba5666834b7b5bf6f94dcc6" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/adhd" path="third_party/adhd" revision="a3e81aa1cef605f2a1b3deb4dcf3e992ec1d602e" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="663072a60425a907bbbb2f25aa55f26e1eb01295" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/libepoxy" path="third_party/libepoxy" revision="199985a9b74aa5610a2ce75be2997e7a272dd9fe" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/minigbm" path="third_party/minigbm" revision="82e37a6c196d089140bf71a83dc0f6042d22ffd2" upstream="crosvm-master"/>
-  <project groups="pdk" name="platform/external/minijail" path="third_party/minijail" revision="52f6adabb6f44761cc23a226cc396bd5c664641c" upstream="crosvm-master"/>
+  <project groups="pdk" name="platform/external/minijail" path="aosp/external/minijail" revision="2b12228001b843327eea78230295dff9813e6b16" upstream="crosvm-master"/>
   <project groups="pdk" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="be6ae27bc7901566619edb05ab1fb34a76ebf44f" upstream="crosvm-master"/>
   <project groups="adt-infra,cts,developers,motodev,pdk,tools,tradefed" name="platform/tools/repohooks" path="tools/repohooks" revision="8eb7cd76622697f630a52cfcaf14a4971be21e38" upstream="crosvm-master"/>
   

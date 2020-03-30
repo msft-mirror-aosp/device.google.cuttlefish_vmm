@@ -18,12 +18,12 @@ declare -A map_uname_to_docker_builder_arch=( [aarch64]=linux/arm64 [x86_64]=lin
 # $9 = path to output dir
 # $10 = reuse image/container? (0: no reuse; 1: reuse image; 2: reuse container)
 # $11 = build image (when reuse = 0)
-# $11 = path to Dockerfile
-# $12 = path to docker context dir
-# $13 = docker_flags_len
-# $14 = (docker_flags)
-# $15 = _prepare_source_len
-# $16 = (_prepare_source)
+# $12 = path to Dockerfile
+# $13 = path to docker context dir
+# $14 = docker_flags_len
+# $15 = (docker_flags)
+# $16 = _prepare_source_len
+# $17 = (_prepare_source)
 function build_with_docker() {
   set -o errexit
   set -x
@@ -72,10 +72,14 @@ function build_with_docker() {
     if [[ ${_build_image} -eq 1 ]]; then
       if [[ ${_arch} != $(uname -m) ]]; then
         export DOCKER_CLI_EXPERIMENTAL=enabled
+        # from
+        # https://community.arm.com/developer/tools-software/tools/b/tools-software-ides-blog/posts/getting-started-with-docker-for-arm-on-linux
+        docker run --rm --privileged docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
         docker buildx create \
           --name docker_vmm_${_arch}_builder \
           --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
           --use
+        docker buildx inspect --bootstrap
         for _target in ${_docker_target[@]}; do
           docker buildx build \
             --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
