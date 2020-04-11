@@ -320,11 +320,8 @@ compile_crosvm_seccomp() {
   case ${ARCH} in
     x86_64) subdir="${ARCH}" ;;
     amd64) subdir="x86_64" ;;
-    arm64) return 0 ;;
-    aarch64) return 0 ;;
-#    uncomment these two lines when crosvm sandbox for aarch64 is supported
-#    arm64) subdir="aarch64" ;;
-#    aarch64) subdir="aarch64" ;;
+    arm64) subdir="aarch64" ;;
+    aarch64) subdir="${ARCH}" ;;
     *)
       echo "${ARCH} is not supported"
       exit 15
