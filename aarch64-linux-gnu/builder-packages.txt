@@ -173,14 +173,14 @@ libglvnd0:arm64	1.1.0-1
 libglx-mesa0:arm64	18.3.6-2+deb10u1
 libglx0:arm64	1.1.0-1
 libgmp10:arm64	2:6.1.2+dfsg-4
-libgnutls-dane0:arm64	3.6.7-4+deb10u2
-libgnutls30:arm64	3.6.7-4+deb10u2
+libgnutls-dane0:arm64	3.6.7-4+deb10u3
+libgnutls30:arm64	3.6.7-4+deb10u3
 libgomp1:arm64	8.3.0-6
 libgpg-error0:arm64	1.35-1
 libgpm2:arm64	1.20.7-5
 libgssapi-krb5-2:arm64	1.17-3
 libhogweed4:arm64	3.4.1-1
-libicu63:arm64	63.1-6
+libicu63:arm64	63.1-6+deb10u1
 libidn11:arm64	1.33-2.2
 libidn2-0:arm64	2.0.5-1+deb10u1
 libip4tc0:arm64	1.8.2-4
