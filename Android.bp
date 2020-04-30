@@ -86,13 +86,6 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libEGL_translator.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libEGL_translator.so"],
-  stem: "libEGL_translator.so",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libemugl_common.so_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libemugl_common.so"],
   stem: "libemugl_common.so",
@@ -117,20 +110,6 @@ cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libgfxstream_backend.so_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libgfxstream_backend.so"],
   stem: "libgfxstream_backend.so",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libGLES_CM_translator.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libGLES_CM_translator.so"],
-  stem: "libGLES_CM_translator.so",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libGLES_V2_translator.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libGLES_V2_translator.so"],
-  stem: "libGLES_V2_translator.so",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
 }
