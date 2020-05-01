@@ -177,7 +177,7 @@ resync_source() {
 compile_minijail() {
   echo "Compiling Minijail..."
 
-  cd "${SOURCE_DIR}/aosp/external/minijail"
+  cd "${SOURCE_DIR}/external/minijail"
 
   make -j OUT="${WORKING_DIR}"
 
@@ -279,9 +279,6 @@ compile_gfxstream() {
   cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libemugl_common.so" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libOpenglRender.so" "${OUTPUT_LIB_DIR}"
-  cp "${dist_dir}/libEGL_translator.so" "${OUTPUT_LIB_DIR}"
-  cp "${dist_dir}/libGLES_CM_translator.so" "${OUTPUT_LIB_DIR}"
-  cp "${dist_dir}/libGLES_V2_translator.so" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libgfxstream_backend.so" "${OUTPUT_LIB_DIR}"
 }
 
