@@ -60,8 +60,8 @@ gcc-8-base:arm64	8.3.0-6
 gettext	0.19.8.1-9
 gettext-base	0.19.8.1-9
 gir1.2-glib-2.0:arm64	1.58.3-2
-git	1:2.20.1-2+deb10u1
-git-man	1:2.20.1-2+deb10u1
+git	1:2.20.1-2+deb10u3
+git-man	1:2.20.1-2+deb10u3
 gnupg	2.2.12-1+deb10u1
 gnupg-l10n	2.2.12-1+deb10u1
 gnupg-utils	2.2.12-1+deb10u1
@@ -197,8 +197,8 @@ libkmod2:arm64	26-1
 libkrb5-3:arm64	1.17-3
 libkrb5support0:arm64	1.17-3
 libksba8:arm64	1.3.5-2
-libldap-2.4-2:arm64	2.4.47+dfsg-3+deb10u1
-libldap-common	2.4.47+dfsg-3+deb10u1
+libldap-2.4-2:arm64	2.4.47+dfsg-3+deb10u2
+libldap-common	2.4.47+dfsg-3+deb10u2
 libllvm7:arm64	1:7.0.1-8
 liblocale-gettext-perl	1.07-3+b4
 liblockfile-bin	1.14-1.1
@@ -275,8 +275,8 @@ libsmartcols1:arm64	2.33.1-0.1
 libsqlite3-0:arm64	3.27.2-3
 libss2:arm64	1.44.5-1+deb10u3
 libssh2-1:arm64	1.8.0-2.1
-libssl-dev:arm64	1.1.1d-0+deb10u2
-libssl1.1:arm64	1.1.1d-0+deb10u2
+libssl-dev:arm64	1.1.1d-0+deb10u3
+libssl1.1:arm64	1.1.1d-0+deb10u3
 libstdc++-8-dev:arm64	8.3.0-6
 libstdc++6:arm64	8.3.0-6
 libsys-hostname-long-perl	1.5-1
@@ -345,7 +345,7 @@ libxtables12:arm64	1.8.2-4
 libxxf86vm-dev:arm64	1:1.1.4-1+b2
 libxxf86vm1:arm64	1:1.1.4-1+b2
 libzstd1:arm64	1.3.8+dfsg-3
-linux-libc-dev:arm64	4.19.98-1
+linux-libc-dev:arm64	4.19.98-1+deb10u1
 login	1:4.5-1.1
 logrotate	3.14.0-4
 lsb-base	10.2019051400
@@ -369,7 +369,7 @@ ninja-build	1.8.2-1
 openssh-client	1:7.9p1-10+deb10u2
 openssh-server	1:7.9p1-10+deb10u2
 openssh-sftp-server	1:7.9p1-10+deb10u2
-openssl	1.1.1d-0+deb10u2
+openssl	1.1.1d-0+deb10u3
 passwd	1:4.5-1.1
 patch	2.7.6-3+deb10u1
 perl	5.28.1-6
