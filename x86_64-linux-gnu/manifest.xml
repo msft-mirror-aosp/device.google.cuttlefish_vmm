@@ -13,7 +13,7 @@
   <project clone-depth="1" name="platform/external/astc-codec" path="external/astc-codec" revision="17ae36822a8084f45ae51f9031e81f8318254f33"/>
   <project clone-depth="1" name="platform/external/boringssl" path="external/boringssl" revision="30400e8dcf23efb5c0563f7121a0e43afe11c782"/>
   <project clone-depth="1" name="platform/external/c-ares" path="external/cares" revision="bdf653f0f9cbcccd64c43630929db8cfde337091"/>
-  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="612b78aa2c5c71e932c647b37f450d54ebfc6ee2" upstream="master"/>
+  <project groups="pdk" name="platform/external/crosvm" path="platform/crosvm" revision="f43fc1b31001569d43b3c4e5cd6c54b70a490add" upstream="master"/>
   <project clone-depth="1" name="platform/external/curl" path="external/curl" revision="1da4b04273638c8afe6f88bd7a7ccfb693640773"/>
   <project clone-depth="1" name="platform/external/deqp" path="external/deqp" revision="59d8ce2c002a44ec9cc26e42b329b3754dd9b4fc"/>
   <project clone-depth="1" name="platform/external/ffmpeg" path="external/ffmpeg" revision="5c6f92dd1b16590153367ce79ed9b098cace354f"/>
