@@ -345,7 +345,7 @@ libubsan1:amd64	8.3.0-6
 libubsan1-arm64-cross	8.3.0-2cross1
 libuchardet0:amd64	0.0.6-3
 libudev1:amd64	241-7~deb10u3
-libunbound8:amd64	1.9.0-2+deb10u1
+libunbound8:amd64	1.9.0-2+deb10u2
 libunistring2:amd64	0.9.10-1
 liburi-perl	1.76-1
 libusb-1.0-0:amd64	2:1.0.22-2
