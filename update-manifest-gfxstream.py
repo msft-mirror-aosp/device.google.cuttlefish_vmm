@@ -42,6 +42,7 @@ gfxstream_projects = set([
   "platform/external/libvpx",
   "platform/external/libyuv",
   "platform/external/libpng",
+  "platform/external/libusb",
   "platform/external/lz4",
   "platform/external/protobuf",
   "platform/external/qemu",
