@@ -31,9 +31,6 @@ function check_location() {
 }
 
 my_name=`basename $0`
-seccomp_archs=("x86_64" "aarch64")
-# under get_arch_dir() in cuttlefish_vmm, where is seccomp?
-subdir="etc/seccomp"
 
 # define arch dir pattern: e.g. ${ARCH}-linux-gnu
 function get_arch_dir() {
@@ -47,20 +44,6 @@ function get_output_file() {
   local blueprint_dir=$1
   blueprint_dir="$(remove_trailing_slash ${blueprint_dir})"
   echo "${blueprint_dir}/Android.bp"
-}
-
-# utility function to enumerate policy files
-#
-# 1: seccomp dir to scan
-function scan_policy_name() {
-  local seccomp_dir=$1
-  (
-    # pushd but no output to stdout/stderr
-    # the output is taken and used by the caller
-    pushd $seccomp_dir > /dev/null 2>&1
-    ls -1
-    popd > /dev/null 2>&1
-  )
 }
 
 # starting from old Android.bp
@@ -130,23 +113,6 @@ function gen_module() {
   echo "}"
 }
 
-function gen_android_bp4seccomp() {
-  local arch="$1"
-  local arch_dir="$(get_arch_dir ${arch})"
-  local seccomp_dir="${arch_dir}/${subdir}"
-  local where_in_etc_on_user_machine="cuttlefish/${arch_dir}/seccomp"
-  gen_license 2019
-  for i in $(scan_policy_name $seccomp_dir); do
-    # first two are: e.g. prebuilt_usr_share_host and whitespace for intentation
-    local base_name="$(basename $i)"
-    gen_module "prebuilt_usr_share_host" '  ' \
-      --name="\"${base_name}_at_${arch}\"" \
-      --src="\"${subdir}/${base_name}\"" \
-      --filename="\"${base_name}\"" \
-      --sub_dir="\"${where_in_etc_on_user_machine}\""
-  done
-}
-
 function gen_main_android_bp() {
   gen_license 2019
 
@@ -186,8 +152,3 @@ done
 # main
 check_location
 gen_main_android_bp > $(get_output_file ${DIR})
-for arch in ${seccomp_archs[@]}; do
-  arch_dir=$(get_arch_dir ${arch})
-  outfile="$(get_output_file ${arch_dir})"
-  gen_android_bp4seccomp $arch > $outfile
-done

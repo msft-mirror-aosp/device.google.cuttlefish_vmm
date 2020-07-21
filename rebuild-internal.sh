@@ -15,7 +15,6 @@ setup_env() {
   : ${OUTPUT_DIR:="$(pwd)/${ARCH}-linux-gnu"}
   OUTPUT_BIN_DIR="${OUTPUT_DIR}/bin"
   OUTPUT_ETC_DIR="${OUTPUT_DIR}/etc"
-  OUTPUT_SECCOMP_DIR="${OUTPUT_ETC_DIR}/seccomp"
   OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
 
   export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
@@ -53,21 +52,6 @@ prepare_cargo() {
 linker = "${1/-unknown-/-}"
 EOF
   fi
-}
-
-install_custom_scripts() {
-  # install our custom utility script used by $0 to ${TOOLS_DIR}
-  echo "Installing custom scripts..."
-  SCRIPTS_TO_INSTALL=("/static/policy-inliner.sh")
-  mkdir -p ${TOOLS_DIR} || /bin/true
-  for scr in ${SCRIPTS_TO_INSTALL[@]}; do
-    if ! [[ -f $scr ]]; then
-      >&2 echo "$scr must exist but does not"
-     exit 10
-    fi
-    chmod a+x $scr
-    cp -f $scr ${TOOLS_DIR}
-  done
 }
 
 install_packages() {
@@ -325,30 +309,6 @@ compile_crosvm() {
   rustup show > "${OUTPUT_DIR}/rustup_show.txt"
 }
 
-compile_crosvm_seccomp() {
-  # note that this depends on compile_crosvm
-  #
-  # for aarch64, this function should do nothing
-  # as the aarch64 subdirectory does not exist yet
-  #
-  echo "Processing Crosvm Seccomp..."
-
-  cd "${SOURCE_DIR}/platform/crosvm"
-  case ${ARCH} in
-    x86_64) subdir="${ARCH}" ;;
-    amd64) subdir="x86_64" ;;
-    arm64) subdir="aarch64" ;;
-    aarch64) subdir="${ARCH}" ;;
-    *)
-      echo "${ARCH} is not supported"
-      exit 15
-  esac
-  policy-inliner.sh \
-    -p $(pwd)/seccomp/$subdir \
-    -o ${OUTPUT_SECCOMP_DIR} \
-    -c $(pwd)/seccomp/$subdir/common_device.policy
-}
-
 compile() {
   echo "Compiling..."
   mkdir -p \
@@ -356,7 +316,6 @@ compile() {
     "${OUTPUT_DIR}" \
     "${OUTPUT_BIN_DIR}" \
     "${OUTPUT_ETC_DIR}" \
-    "${OUTPUT_SECCOMP_DIR}" \
     "${OUTPUT_LIB_DIR}"
 
   if [[ $BUILD_CROSVM -eq 1 ]]; then
@@ -375,8 +334,6 @@ compile() {
   if [[ $BUILD_CROSVM -eq 1 ]]; then
       compile_crosvm
   fi
-
-  compile_crosvm_seccomp
 
   dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
   echo "Results in ${OUTPUT_DIR}"
@@ -415,7 +372,6 @@ for i in "$@"; do
     aarch64_build) $i ;;
     aarch64_retry) $i ;;
     setup_env) $i ;;
-    install_custom_scripts) $i ;;
     install_packages) $i ;;
     fetch_source) $i ;;
     resync_source) $i ;;
