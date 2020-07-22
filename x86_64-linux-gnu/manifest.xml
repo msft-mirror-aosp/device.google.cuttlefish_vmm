@@ -6,7 +6,7 @@
   
   <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
   
-  <project clone-depth="1" name="device/generic/goldfish-opengl" revision="93ae9108bb60fc595468f222c1d94f6f6602a101"/>
+  <project clone-depth="1" name="device/generic/goldfish-opengl" revision="39ef5bd8180a37f52817f06d2492154c8cd5a057"/>
   <project clone-depth="1" name="device/generic/vulkan-cereal" revision="ea978cef5a41c292dd9bd0ce9bf08648e76ca030"/>
   <project groups="pdk" name="platform/external/adhd" path="external/adhd" revision="2e5b55c9a2bf11058945639ff8ddd513871c9a97" upstream="master"/>
   <project clone-depth="1" name="platform/external/angle" path="external/angle" revision="61ed0a943789204b9cc14074afdfb8587a345ef8"/>
@@ -19,7 +19,7 @@
   <project clone-depth="1" name="platform/external/ffmpeg" path="external/ffmpeg" revision="5c6f92dd1b16590153367ce79ed9b098cace354f"/>
   <project clone-depth="1" name="platform/external/google-benchmark" path="external/google-benchmark" revision="db1632fadc79df388a2a7248157c965ee40248a1"/>
   <project clone-depth="1" name="platform/external/google-breakpad" path="external/google-breakpad" revision="a1414818b9f9810a3b45f1f55d9c00f5116ec7d9"/>
-  <project clone-depth="1" name="platform/external/googletest" path="external/googletest" revision="de13bdb524c9d888b24a56490742227d9aabad12"/>
+  <project clone-depth="1" name="platform/external/googletest" path="external/googletest" revision="e87584ebb141cd532f4688556835903c44563292"/>
   <project clone-depth="1" name="platform/external/grpc-grpc" path="external/grpc" revision="0d80ea35ba09d0462ca13f236cc9ddc3fb749c57"/>
   <project groups="pdk" name="platform/external/libepoxy" path="third_party/libepoxy" revision="199985a9b74aa5610a2ce75be2997e7a272dd9fe" upstream="crosvm-master"/>
   <project clone-depth="1" name="platform/external/libffi" path="external/libffi" revision="30bc66eb2043d8434e94f29beda87001e58c2a34"/>
@@ -32,7 +32,7 @@
   <project groups="pdk" name="platform/external/minijail" path="external/minijail" revision="2f2c20780cf7bbfe92657829cdae5a76cc4cb0c0" upstream="master"/>
   <project clone-depth="1" name="platform/external/nasm" path="external/nasm" revision="645e4f02c622ba67eb754000cc00c9db8be31f85"/>
   <project clone-depth="1" name="platform/external/protobuf" path="external/protobuf" revision="ca15ad7fb89a626c0d2a98240b11a2523727f9be"/>
-  <project clone-depth="1" name="platform/external/qemu" path="external/qemu" revision="dcc13be838fc583fe13fa7495024596bed7ecfcc"/>
+  <project clone-depth="1" name="platform/external/qemu" path="external/qemu" revision="2da4bb7740cab21c63b243ca2fd97beeeca9ccba"/>
   <project clone-depth="1" name="platform/external/tinyobjloader" path="external/tinyobjloader" revision="d16a940067fbc191364fc1d3e2a2d907209c9320"/>
   <project groups="pdk" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="f0c2fba5827abb3634b1992855264d7fe990b89d" upstream="crosvm-master"/>
   <project clone-depth="1" name="platform/external/zlib" path="external/zlib" revision="7656f9eff09cc38244978773777ee64b7b31155d"/>
