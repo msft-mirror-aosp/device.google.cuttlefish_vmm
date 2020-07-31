@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # Copyright 2020 - The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the',  help='License');
@@ -42,6 +43,7 @@ gfxstream_projects = set([
   "platform/external/libvpx",
   "platform/external/libyuv",
   "platform/external/libpng",
+  "platform/external/libusb",
   "platform/external/lz4",
   "platform/external/protobuf",
   "platform/external/qemu",
@@ -116,6 +118,6 @@ print("Result: ")
 print(output_string.decode())
 print("Writing result to %s" % target_manifest_filename)
 
-fh = open(target_manifest_filename, 'w')
+fh = open(target_manifest_filename, 'wb')
 fh.write(output_string)
 fh.close()

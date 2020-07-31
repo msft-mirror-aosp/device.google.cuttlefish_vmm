@@ -16,6 +16,8 @@
 # Modifies an input manifest.xml (such as x86_64-linux-gnu/manifest.xml)
 # to point to a particular Android build id of gfxstream
 
+set -e
+
 BUILD_ID=$1
 INPUT_MANIFEST=$2
 
@@ -24,6 +26,6 @@ INPUT_MANIFEST=$2
     --target gfxstream_sdk_tools_linux "manifest_${BUILD_ID}.xml"
 
 # Check the output and use it to replace the INPUT_MANIFEST
-python update-manifest-gfxstream.py \
+./update-manifest-gfxstream.py \
     manifest_${BUILD_ID}.xml \
     ${INPUT_MANIFEST}
