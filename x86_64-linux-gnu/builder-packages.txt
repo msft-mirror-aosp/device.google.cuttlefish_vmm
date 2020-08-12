@@ -5,7 +5,7 @@ autoconf	2.69-11
 automake	1:1.16.1-4
 autopoint	0.19.8.1-9
 autotools-dev	20180224.1
-base-files	10.3+deb10u3
+base-files	10.3+deb10u5
 base-passwd	3.5.46
 bash	5.0-4
 binutils	2.31.1-16
@@ -30,7 +30,7 @@ cross-config	2.6.15-3
 crossbuild-essential-arm64	12.6
 curl	7.64.0-4+deb10u1
 dash	0.5.10.2-5
-dbus	1.12.16-1
+dbus	1.12.20-0+deb10u1
 debconf	1.5.71
 debhelper	12.1.1
 debian-archive-keyring	2019.1
@@ -100,7 +100,7 @@ libalgorithm-diff-xs-perl	0.04-5+b1
 libalgorithm-merge-perl	0.08-3
 libapparmor1:amd64	2.13.2-10
 libapt-inst2.0:amd64	1.8.2.1
-libapt-pkg5.0:amd64	1.8.2
+libapt-pkg5.0:amd64	1.8.2.1
 libarchive-cpio-perl	0.10-1
 libarchive-zip-perl	1.64-1
 libarchive13:amd64	3.3.3-4+deb10u1
@@ -139,7 +139,7 @@ libcurl3-gnutls:amd64	7.64.0-4+deb10u1
 libcurl4:amd64	7.64.0-4+deb10u1
 libdata-dump-perl	1.23-1
 libdb5.3:amd64	5.3.28+dfsg1-0.5
-libdbus-1-3:amd64	1.12.16-1
+libdbus-1-3:amd64	1.12.20-0+deb10u1
 libdebconfclient0:amd64	0.249
 libdebian-dpkgcross-perl	2.6.15-3
 libdevmapper1.02.1:amd64	2:1.02.155-3
@@ -199,8 +199,8 @@ libglvnd0:amd64	1.1.0-1
 libglx-mesa0:amd64	18.3.6-2+deb10u1
 libglx0:amd64	1.1.0-1
 libgmp10:amd64	2:6.1.2+dfsg-4
-libgnutls-dane0:amd64	3.6.7-4+deb10u4
-libgnutls30:amd64	3.6.7-4+deb10u4
+libgnutls-dane0:amd64	3.6.7-4+deb10u5
+libgnutls30:amd64	3.6.7-4+deb10u5
 libgomp1:amd64	8.3.0-6
 libgomp1-arm64-cross	8.3.0-2cross1
 libgpg-error0:amd64	1.35-1
@@ -230,7 +230,7 @@ libisl19:amd64	0.20-2
 libitm1:amd64	8.3.0-6
 libitm1-arm64-cross	8.3.0-2cross1
 libjansson4:amd64	2.12-1
-libjson-c3:amd64	0.12.1+ds-2
+libjson-c3:amd64	0.12.1+ds-2+deb10u1
 libjsoncpp1:amd64	1.7.4-3
 libk5crypto3:amd64	1.17-3
 libkeyutils1:amd64	1.6-6
@@ -287,7 +287,7 @@ libpam0g:amd64	1.3.1-5
 libpciaccess0:amd64	0.14-1
 libpcre2-8-0:amd64	10.32-5
 libpcre3:amd64	2:8.39-12
-libperl5.28:amd64	5.28.1-6
+libperl5.28:amd64	5.28.1-6+deb10u1
 libpipeline1:amd64	1.5.1-2
 libpopt0:amd64	1.16-12
 libprocps7:amd64	2:3.3.15-2
@@ -303,10 +303,10 @@ libpython2.7-minimal:amd64	2.7.16-2+deb10u1
 libpython2.7-stdlib:amd64	2.7.16-2+deb10u1
 libpython3-dev:amd64	3.7.3-1
 libpython3-stdlib:amd64	3.7.3-1
-libpython3.7:amd64	3.7.3-2+deb10u1
-libpython3.7-dev:amd64	3.7.3-2+deb10u1
-libpython3.7-minimal:amd64	3.7.3-2+deb10u1
-libpython3.7-stdlib:amd64	3.7.3-2+deb10u1
+libpython3.7:amd64	3.7.3-2+deb10u2
+libpython3.7-dev:amd64	3.7.3-2+deb10u2
+libpython3.7-minimal:amd64	3.7.3-2+deb10u2
+libpython3.7-stdlib:amd64	3.7.3-2+deb10u2
 libquadmath0:amd64	8.3.0-6
 libreadline7:amd64	7.0-5
 librhash0:amd64	1.3.8-1
@@ -344,7 +344,7 @@ libtsan0-arm64-cross	8.3.0-2cross1
 libubsan1:amd64	8.3.0-6
 libubsan1-arm64-cross	8.3.0-2cross1
 libuchardet0:amd64	0.0.6-3
-libudev1:amd64	241-7~deb10u3
+libudev1:amd64	241-7~deb10u4
 libunbound8:amd64	1.9.0-2+deb10u2
 libunistring2:amd64	0.9.10-1
 liburi-perl	1.76-1
@@ -415,7 +415,7 @@ libyaml-0-2:amd64	0.2.1-1
 libyaml-libyaml-perl	0.76+repack-1
 libyaml-perl	1.27-1
 libzstd1:amd64	1.3.8+dfsg-3
-linux-libc-dev:amd64	4.19.118-2+deb10u1
+linux-libc-dev:amd64	4.19.132-1
 linux-libc-dev-arm64-cross	4.19.20-1cross1
 login	1:4.5-1.1
 logrotate	3.14.0-4
@@ -443,9 +443,9 @@ openssh-sftp-server	1:7.9p1-10+deb10u2
 openssl	1.1.1d-0+deb10u3
 passwd	1:4.5-1.1
 patch	2.7.6-3+deb10u1
-perl	5.28.1-6
-perl-base	5.28.1-6
-perl-modules-5.28	5.28.1-6
+perl	5.28.1-6+deb10u1
+perl-base	5.28.1-6+deb10u1
+perl-modules-5.28	5.28.1-6+deb10u1
 perl-openssl-defaults:amd64	3
 pinentry-curses	1.1.0-2
 pkg-config	0.29-6
@@ -482,9 +482,9 @@ python3-setuptools	40.8.0-1
 python3-six	1.12.0-1
 python3-wheel	0.32.3-2
 python3-xdg	0.25-5
-python3.7	3.7.3-2+deb10u1
-python3.7-dev	3.7.3-2+deb10u1
-python3.7-minimal	3.7.3-2+deb10u1
+python3.7	3.7.3-2+deb10u2
+python3.7-dev	3.7.3-2+deb10u2
+python3.7-minimal	3.7.3-2+deb10u2
 readline-common	7.0-5
 rsyslog	8.1901.0-1
 sed	4.7-1
@@ -495,7 +495,7 @@ systemd	241-7~deb10u4
 systemd-sysv	241-7~deb10u4
 sysvinit-utils	2.93-8
 tar	1.30+dfsg-6
-tzdata	2019c-0+deb10u1
+tzdata	2020a-0+deb10u1
 ucf	3.0038+nmu1
 util-linux	2.33.1-0.1
 x11proto-core-dev	2018.4-4
