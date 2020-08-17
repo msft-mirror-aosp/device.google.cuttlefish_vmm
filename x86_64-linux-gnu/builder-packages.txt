@@ -5,7 +5,7 @@ autoconf	2.69-11
 automake	1:1.16.1-4
 autopoint	0.19.8.1-9
 autotools-dev	20180224.1
-base-files	10.3+deb10u5
+base-files	10.3+deb10u3
 base-passwd	3.5.46
 bash	5.0-4
 binutils	2.31.1-16
@@ -100,7 +100,7 @@ libalgorithm-diff-xs-perl	0.04-5+b1
 libalgorithm-merge-perl	0.08-3
 libapparmor1:amd64	2.13.2-10
 libapt-inst2.0:amd64	1.8.2.1
-libapt-pkg5.0:amd64	1.8.2.1
+libapt-pkg5.0:amd64	1.8.2
 libarchive-cpio-perl	0.10-1
 libarchive-zip-perl	1.64-1
 libarchive13:amd64	3.3.3-4+deb10u1
@@ -344,7 +344,7 @@ libtsan0-arm64-cross	8.3.0-2cross1
 libubsan1:amd64	8.3.0-6
 libubsan1-arm64-cross	8.3.0-2cross1
 libuchardet0:amd64	0.0.6-3
-libudev1:amd64	241-7~deb10u4
+libudev1:amd64	241-7~deb10u3
 libunbound8:amd64	1.9.0-2+deb10u2
 libunistring2:amd64	0.9.10-1
 liburi-perl	1.76-1
@@ -495,7 +495,7 @@ systemd	241-7~deb10u4
 systemd-sysv	241-7~deb10u4
 sysvinit-utils	2.93-8
 tar	1.30+dfsg-6
-tzdata	2020a-0+deb10u1
+tzdata	2019c-0+deb10u1
 ucf	3.0038+nmu1
 util-linux	2.33.1-0.1
 x11proto-core-dev	2018.4-4
