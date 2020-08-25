@@ -153,9 +153,8 @@ fetch_source() {
                "a copy of device/google/cuttlefish_vmm/manifest.xml."
   fi
 
-  repo init -q -u https://android.googlesource.com/platform/manifest
-  cp "${CUSTOM_MANIFEST}" .repo/manifests
-  repo init -m "${CUSTOM_MANIFEST}"
+  cp ${CUSTOM_MANIFEST} manifest.xml
+  repo init --partial-clone -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
   repo sync
 }
 
