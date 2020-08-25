@@ -150,7 +150,7 @@ fetch_source() {
     # Building Crosvm currently depends using Chromium's directory scheme for subproject
     # directories ('third_party' vs 'external').
     fatal_echo "CUSTOM_MANIFEST must be provided. You most likely want to provide a full path to" \
-               "a copy of device/google/cuttlefish_vmm/${ARCH}-linux-gnu/manifest.xml."
+               "a copy of device/google/cuttlefish_vmm/manifest.xml."
   fi
 
   repo init -q -u https://android.googlesource.com/platform/manifest
@@ -358,7 +358,6 @@ compile() {
   compile_crosvm_seccomp
 
   dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
-  repo manifest -r -o "${OUTPUT_DIR}/manifest.xml"
   echo "Results in ${OUTPUT_DIR}"
 }
 
