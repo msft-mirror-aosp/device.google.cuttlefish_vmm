@@ -3,13 +3,14 @@
   <remote fetch=".." name="aosp" review="https://android-review.googlesource.com/"/>
   <default remote="aosp" revision="master" sync-j="4"/>
   <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
-  <project groups="crosvm" name="platform/external/adhd" path="external/adhd" revision="2e5b55c9a2bf11058945639ff8ddd513871c9a97"/>
-  <project groups="crosvm" name="platform/external/crosvm" path="platform/crosvm" revision="75113cccf457a4458ea9fd99ffdacceb2f31f84c"/>
-  <project groups="crosvm" name="platform/external/libepoxy" path="third_party/libepoxy" revision="199985a9b74aa5610a2ce75be2997e7a272dd9fe"/>
-  <project groups="crosvm" name="platform/external/minigbm" path="third_party/minigbm" revision="82e37a6c196d089140bf71a83dc0f6042d22ffd2"/>
-  <project groups="crosvm" name="platform/external/minijail" path="external/minijail" revision="2f2c20780cf7bbfe92657829cdae5a76cc4cb0c0"/>
-  <project groups="crosvm" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="be6ae27bc7901566619edb05ab1fb34a76ebf44f"/>
-  <project groups="crosvm" name="platform/tools/repohooks" path="tools/repohooks" revision="8eb7cd76622697f630a52cfcaf14a4971be21e38"/>
+  <project groups="crosvm" name="platform/external/adhd" path="platform/adhd" revision="64dd57d5e94e3d12043438436ca39d42550cab25"/>
+  <project groups="crosvm" name="platform/external/crosvm" path="platform/crosvm" revision="153efcdb527b9c7b88bce82e448ac1a506b7b9c8"/>
+  <project groups="crosvm" name="platform/external/libdrm" path="external/libdrm" revision="0fc19b7021453b02110a6327ecbb0b2ce85aa84b"/>
+  <project groups="crosvm" name="platform/external/libepoxy" path="third_party/libepoxy" revision="97d96203c4227939a9e6509ef9b5b425b489025d"/>
+  <project groups="crosvm" name="platform/external/minigbm" path="third_party/minigbm" revision="30d997f31d2e7bd542bfdf7676c5715c2b537feb"/>
+  <project groups="crosvm" name="platform/external/minijail" path="platform/minijail" revision="3b58ccb3072c5908c79d65339e886b344f49c5d1"/>
+  <project groups="crosvm" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="6c1801aaa54d005d5cf5ef0cbe153f776b50dd6b"/>
+  <project groups="crosvm" name="platform/tools/repohooks" path="tools/repohooks" revision="3798d7e067b927a16dc9e47bc6af949f9a2f4e20"/>
   <repo-hooks enabled-list="pre-upload" in-project="platform/tools/repohooks"/>
   <project groups="gfxstream" name="platform/external/ffmpeg" path="external/ffmpeg" revision="5c6f92dd1b16590153367ce79ed9b098cace354f"/>
   <project groups="gfxstream" name="platform/external/boringssl" path="external/boringssl" revision="ba9db8781ec11859132f543aebff5d6093214751"/>
