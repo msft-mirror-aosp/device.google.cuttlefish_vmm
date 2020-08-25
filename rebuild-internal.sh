@@ -339,20 +339,21 @@ compile() {
     "${OUTPUT_SECCOMP_DIR}" \
     "${OUTPUT_LIB_DIR}"
 
-  compile_minijail
-
-  compile_minigbm
-
-  compile_epoxy
-
-  compile_virglrenderer
+  if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_minijail
+      compile_minigbm
+      compile_epoxy
+      compile_virglrenderer
+  fi
 
   # TODO: Finish the aarch64 cross/native gfxstream build
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       compile_gfxstream
   fi
 
-  compile_crosvm
+  if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_crosvm
+  fi
 
   compile_crosvm_seccomp
 
@@ -362,7 +363,7 @@ compile() {
 }
 
 aarch64_retry() {
-  MINIGBM_DRV="RADEON VC4" compile
+  MINIGBM_DRV="RADEON VC4" BUILD_CROSVM=1 compile
 }
 
 aarch64_build() {
