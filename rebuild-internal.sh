@@ -19,6 +19,7 @@ setup_env() {
   OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
 
   export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
+  export PKG_CONFIG_PATH="${WORKING_DIR}/usr/lib/pkgconfig"
 }
 
 set -o errexit
@@ -84,11 +85,11 @@ install_packages() {
       g++ \
       git \
       libcap-dev \
-      libdrm-dev \
       libfdt-dev \
       libegl1-mesa-dev \
       libgl1-mesa-dev \
       libgles2-mesa-dev \
+      libpciaccess-dev \
       libssl-dev \
       libtool \
       libusb-1.0-0-dev \
@@ -173,10 +174,32 @@ resync_source() {
   fetch_source
 }
 
+compile_libdrm() {
+  cd "${SOURCE_DIR}/external/libdrm"
+
+  meson build \
+    --libdir="${WORKING_DIR}/usr/lib" \
+    --prefix="${WORKING_DIR}/usr" \
+    -Damdgpu=false \
+    -Dfreedreno=false \
+    -Dintel=false \
+    -Dlibkms=false \
+    -Dnouveau=false \
+    -Dradeon=false \
+    -Dvc4=false \
+    -Dvmwgfx=false
+
+  cd build
+
+  ninja install
+
+  cp "${WORKING_DIR}"/usr/lib/libdrm.so.2 "${OUTPUT_LIB_DIR}"
+}
+
 compile_minijail() {
   echo "Compiling Minijail..."
 
-  cd "${SOURCE_DIR}/external/minijail"
+  cd "${SOURCE_DIR}/platform/minijail"
 
   make -j OUT="${WORKING_DIR}"
 
@@ -206,8 +229,7 @@ compile_minigbm() {
     "${make_flags[@]}" \
     CPPFLAGS="${cpp_flags[*]}" \
     DESTDIR="${WORKING_DIR}" \
-    OUT="${WORKING_DIR}" \
-    PKG_CONFIG=pkg-config
+    OUT="${WORKING_DIR}"
 
   cp ${WORKING_DIR}/usr/lib/libgbm.so.1 "${OUTPUT_LIB_DIR}"
 }
@@ -217,7 +239,6 @@ compile_epoxy() {
 
   meson build \
     --libdir="${WORKING_DIR}/usr/lib" \
-    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dglx=no \
     -Dx11=false \
@@ -248,10 +269,10 @@ compile_virglrenderer() {
 
   meson build \
     --libdir="${WORKING_DIR}/usr/lib" \
-    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dplatforms=egl \
-    -Dgbm_allocation=false
+    -Dminigbm_allocation=false \
+    -Dunstable_apis=true
 
   cd build
 
@@ -287,7 +308,7 @@ compile_crosvm() {
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
-  local crosvm_features=gpu,composite-disk
+  local crosvm_features=audio,gpu,composite-disk,virtio-gpu-next
 
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       crosvm_features+=,gfxstream
@@ -339,6 +360,7 @@ compile() {
     "${OUTPUT_LIB_DIR}"
 
   if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_libdrm
       compile_minijail
       compile_minigbm
       compile_epoxy
