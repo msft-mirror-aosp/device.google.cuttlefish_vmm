@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Common code to build a host image on GCE
 
 # INTERNAL_extra_source may be set to a directory containing the source for
