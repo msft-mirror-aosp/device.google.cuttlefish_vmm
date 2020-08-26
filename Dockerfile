@@ -32,8 +32,7 @@ RUN mkdir /static && chown -R $USER /static
 USER $USER
 WORKDIR $HOME
 
-COPY --chown=$USER x86_64-linux-gnu/manifest.xml /static/x86_64-linux-gnu/manifest.xml
-COPY --chown=$USER aarch64-linux-gnu/manifest.xml /static/aarch64-linux-gnu/manifest.xml
+COPY --chown=$USER manifest.xml /static/manifest.xml
 COPY --chown=$USER custom.xml /static/custom.xml
 COPY --chown=$USER policy-inliner.sh /static/policy-inliner.sh
 COPY --chown=$USER rebuild-internal.sh /static/rebuild-internal.sh
