@@ -3,6 +3,5 @@
 **/*
 **/.*
 !rebuild-internal.sh
-!policy-inliner.sh
 !manifest.xml
 !custom.xml
