@@ -363,7 +363,6 @@ main() {
   relative_source_files=("rebuild-docker.sh"
      "rebuild-internal.sh"
      "Dockerfile"
-     "policy-inliner.sh"
      "manifest.xml"
      ".dockerignore")
   # These must match the definitions in the Dockerfile
