@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Modifies an input manifest.xml (such as x86_64-linux-gnu/manifest.xml)
-# to point to a particular Android build id of gfxstream
+# Modifies an input manifest.xml to point to a particular Android build
+# id of gfxstream
 
 set -e
 
