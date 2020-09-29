@@ -14,11 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-cc_prebuilt_binary {
+sh_binary_host {
   name: "common_crosvm",
-  stem: "crosvm",
-  srcs: ["scripts/crosvm"],
-  defaults: ["cuttlefish_host_only"],
+  filename: "crosvm",
+  target: {
+    linux_glibc: {
+      src: "scripts/crosvm",
+    },
+    darwin: {
+      src: "scripts/crosvm",
+    },
+    linux_bionic: {
+      src: "scripts/crosvm_bionic",
+    },
+  },
 }
 // NOTE: Using cc_prebuilt_binary because cc_prebuilt_library can't handle stem on pie
 
