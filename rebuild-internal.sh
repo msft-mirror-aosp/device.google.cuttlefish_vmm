@@ -15,10 +15,10 @@ setup_env() {
   : ${OUTPUT_DIR:="$(pwd)/${ARCH}-linux-gnu"}
   OUTPUT_BIN_DIR="${OUTPUT_DIR}/bin"
   OUTPUT_ETC_DIR="${OUTPUT_DIR}/etc"
-  OUTPUT_SECCOMP_DIR="${OUTPUT_ETC_DIR}/seccomp"
   OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
 
   export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
+  export PKG_CONFIG_PATH="${WORKING_DIR}/usr/lib/pkgconfig"
 }
 
 set -o errexit
@@ -54,21 +54,6 @@ EOF
   fi
 }
 
-install_custom_scripts() {
-  # install our custom utility script used by $0 to ${TOOLS_DIR}
-  echo "Installing custom scripts..."
-  SCRIPTS_TO_INSTALL=("/static/policy-inliner.sh")
-  mkdir -p ${TOOLS_DIR} || /bin/true
-  for scr in ${SCRIPTS_TO_INSTALL[@]}; do
-    if ! [[ -f $scr ]]; then
-      >&2 echo "$scr must exist but does not"
-     exit 10
-    fi
-    chmod a+x $scr
-    cp -f $scr ${TOOLS_DIR}
-  done
-}
-
 install_packages() {
   echo Installing packages...
   sudo dpkg --add-architecture arm64
@@ -84,11 +69,11 @@ install_packages() {
       g++ \
       git \
       libcap-dev \
-      libdrm-dev \
       libfdt-dev \
       libegl1-mesa-dev \
       libgl1-mesa-dev \
       libgles2-mesa-dev \
+      libpciaccess-dev \
       libssl-dev \
       libtool \
       libusb-1.0-0-dev \
@@ -150,12 +135,11 @@ fetch_source() {
     # Building Crosvm currently depends using Chromium's directory scheme for subproject
     # directories ('third_party' vs 'external').
     fatal_echo "CUSTOM_MANIFEST must be provided. You most likely want to provide a full path to" \
-               "a copy of device/google/cuttlefish_vmm/${ARCH}-linux-gnu/manifest.xml."
+               "a copy of device/google/cuttlefish_vmm/manifest.xml."
   fi
 
-  repo init -q -u https://android.googlesource.com/platform/manifest
-  cp "${CUSTOM_MANIFEST}" .repo/manifests
-  repo init -m "${CUSTOM_MANIFEST}"
+  cp ${CUSTOM_MANIFEST} manifest.xml
+  repo init --partial-clone -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
   repo sync
 }
 
@@ -174,10 +158,32 @@ resync_source() {
   fetch_source
 }
 
+compile_libdrm() {
+  cd "${SOURCE_DIR}/external/libdrm"
+
+  meson build \
+    --libdir="${WORKING_DIR}/usr/lib" \
+    --prefix="${WORKING_DIR}/usr" \
+    -Damdgpu=false \
+    -Dfreedreno=false \
+    -Dintel=false \
+    -Dlibkms=false \
+    -Dnouveau=false \
+    -Dradeon=false \
+    -Dvc4=false \
+    -Dvmwgfx=false
+
+  cd build
+
+  ninja install
+
+  cp "${WORKING_DIR}"/usr/lib/libdrm.so.2 "${OUTPUT_LIB_DIR}"
+}
+
 compile_minijail() {
   echo "Compiling Minijail..."
 
-  cd "${SOURCE_DIR}/external/minijail"
+  cd "${SOURCE_DIR}/platform/minijail"
 
   make -j OUT="${WORKING_DIR}"
 
@@ -207,8 +213,7 @@ compile_minigbm() {
     "${make_flags[@]}" \
     CPPFLAGS="${cpp_flags[*]}" \
     DESTDIR="${WORKING_DIR}" \
-    OUT="${WORKING_DIR}" \
-    PKG_CONFIG=pkg-config
+    OUT="${WORKING_DIR}"
 
   cp ${WORKING_DIR}/usr/lib/libgbm.so.1 "${OUTPUT_LIB_DIR}"
 }
@@ -218,7 +223,6 @@ compile_epoxy() {
 
   meson build \
     --libdir="${WORKING_DIR}/usr/lib" \
-    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dglx=no \
     -Dx11=false \
@@ -249,10 +253,10 @@ compile_virglrenderer() {
 
   meson build \
     --libdir="${WORKING_DIR}/usr/lib" \
-    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dplatforms=egl \
-    -Dgbm_allocation=false
+    -Dminigbm_allocation=false \
+    -Dunstable_apis=true
 
   cd build
 
@@ -288,7 +292,7 @@ compile_crosvm() {
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
-  local crosvm_features=gpu,composite-disk
+  local crosvm_features=audio,gpu,composite-disk,virtio-gpu-next
 
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       crosvm_features+=,gfxstream
@@ -305,30 +309,6 @@ compile_crosvm() {
   rustup show > "${OUTPUT_DIR}/rustup_show.txt"
 }
 
-compile_crosvm_seccomp() {
-  # note that this depends on compile_crosvm
-  #
-  # for aarch64, this function should do nothing
-  # as the aarch64 subdirectory does not exist yet
-  #
-  echo "Processing Crosvm Seccomp..."
-
-  cd "${SOURCE_DIR}/platform/crosvm"
-  case ${ARCH} in
-    x86_64) subdir="${ARCH}" ;;
-    amd64) subdir="x86_64" ;;
-    arm64) subdir="aarch64" ;;
-    aarch64) subdir="${ARCH}" ;;
-    *)
-      echo "${ARCH} is not supported"
-      exit 15
-  esac
-  policy-inliner.sh \
-    -p $(pwd)/seccomp/$subdir \
-    -o ${OUTPUT_SECCOMP_DIR} \
-    -c $(pwd)/seccomp/$subdir/common_device.policy
-}
-
 compile() {
   echo "Compiling..."
   mkdir -p \
@@ -336,33 +316,31 @@ compile() {
     "${OUTPUT_DIR}" \
     "${OUTPUT_BIN_DIR}" \
     "${OUTPUT_ETC_DIR}" \
-    "${OUTPUT_SECCOMP_DIR}" \
     "${OUTPUT_LIB_DIR}"
 
-  compile_minijail
-
-  compile_minigbm
-
-  compile_epoxy
-
-  compile_virglrenderer
+  if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_libdrm
+      compile_minijail
+      compile_minigbm
+      compile_epoxy
+      compile_virglrenderer
+  fi
 
   # TODO: Finish the aarch64 cross/native gfxstream build
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       compile_gfxstream
   fi
 
-  compile_crosvm
-
-  compile_crosvm_seccomp
+  if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_crosvm
+  fi
 
   dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
-  repo manifest -r -o "${OUTPUT_DIR}/manifest.xml"
   echo "Results in ${OUTPUT_DIR}"
 }
 
 aarch64_retry() {
-  MINIGBM_DRV="RADEON VC4" compile
+  MINIGBM_DRV="RADEON VC4" BUILD_CROSVM=1 compile
 }
 
 aarch64_build() {
@@ -394,7 +372,6 @@ for i in "$@"; do
     aarch64_build) $i ;;
     aarch64_retry) $i ;;
     setup_env) $i ;;
-    install_custom_scripts) $i ;;
     install_packages) $i ;;
     fetch_source) $i ;;
     resync_source) $i ;;
