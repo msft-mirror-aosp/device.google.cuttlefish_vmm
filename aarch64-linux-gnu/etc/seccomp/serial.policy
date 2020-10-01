@@ -42,4 +42,6 @@ sigaltstack: 1
 write: 1
 writev: 1
 
+connect: 1
+bind: 1
 openat: return ENOENT

@@ -5,18 +5,20 @@ name = "aarch64"
 version = "0.1.0"
 dependencies = [
  "arch",
+ "base",
  "data_model",
  "devices",
- "io_jail",
+ "hypervisor",
  "kernel_cmdline",
  "kvm",
  "kvm_sys",
  "libc",
+ "minijail",
  "remain",
  "resources",
  "sync",
- "sys_util",
  "vm_control",
+ "vm_memory",
 ]
 
 [[package]]
@@ -30,15 +32,17 @@ dependencies = [
 name = "arch"
 version = "0.1.0"
 dependencies = [
+ "acpi_tables",
+ "base",
  "devices",
- "io_jail",
+ "hypervisor",
  "kernel_cmdline",
- "kvm",
  "libc",
+ "minijail",
  "resources",
  "sync",
- "sys_util",
  "vm_control",
+ "vm_memory",
 ]
 
 [[package]]
@@ -46,10 +50,28 @@ name = "assertions"
 version = "0.1.0"
 
 [[package]]
+name = "async-trait"
+version = "0.1.41"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b246867b8b3b6ae56035f1eb1ed557c1d8eae97f0d53696138a50fa0e3a3b8c0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "audio_streams"
 version = "0.1.0"
 dependencies = [
  "sync",
+ "sys_util",
+]
+
+[[package]]
+name = "base"
+version = "0.1.0"
+dependencies = [
  "sys_util",
 ]
 
@@ -99,10 +121,12 @@ dependencies = [
 name = "cros_async"
 version = "0.1.0"
 dependencies = [
+ "base",
  "futures",
+ "io_uring",
  "libc",
  "paste",
- "sys_util",
+ "pin-utils",
  "syscall_defines",
 ]
 
@@ -115,6 +139,7 @@ dependencies = [
  "arch",
  "assertions",
  "audio_streams",
+ "base",
  "bit_field",
  "crosvm_plugin",
  "data_model",
@@ -123,14 +148,14 @@ dependencies = [
  "enumn",
  "gpu_buffer",
  "gpu_renderer",
- "io_jail",
+ "hypervisor",
  "kernel_cmdline",
  "kernel_loader",
  "kvm",
  "kvm_sys",
  "libc",
  "libcras",
- "minijail-sys",
+ "minijail",
  "msg_socket",
  "net_util",
  "p9",
@@ -140,9 +165,9 @@ dependencies = [
  "remain",
  "resources",
  "sync",
- "sys_util",
  "vhost",
  "vm_control",
+ "vm_memory",
  "x86_64",
 ]
 
@@ -150,12 +175,12 @@ dependencies = [
 name = "crosvm_plugin"
 version = "0.17.0"
 dependencies = [
+ "base",
  "kvm",
  "kvm_sys",
  "libc",
  "protobuf",
  "protos",
- "sys_util",
 ]
 
 [[package]]
@@ -163,37 +188,41 @@ name = "data_model"
 version = "0.1.0"
 dependencies = [
  "assertions",
+ "libc",
 ]
 
 [[package]]
 name = "devices"
 version = "0.1.0"
 dependencies = [
+ "acpi_tables",
  "audio_streams",
+ "base",
  "bit_field",
  "bitflags",
+ "cros_async",
  "data_model",
  "disk",
  "enumn",
  "gpu_buffer",
  "gpu_display",
  "gpu_renderer",
- "io_jail",
- "kvm",
+ "hypervisor",
  "kvm_sys",
  "libc",
  "libcras",
  "linux_input_sys",
+ "minijail",
  "msg_on_socket_derive",
  "msg_socket",
  "net_sys",
  "net_util",
  "p9",
  "protos",
+ "rand_ish",
  "remain",
  "resources",
  "sync",
- "sys_util",
  "syscall_defines",
  "tempfile 3.0.7",
  "tpm2",
@@ -202,18 +231,23 @@ dependencies = [
  "vhost",
  "virtio_sys",
  "vm_control",
+ "vm_memory",
 ]
 
 [[package]]
 name = "disk"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "base",
+ "cros_async",
  "data_model",
+ "futures",
  "libc",
  "protobuf",
  "protos",
  "remain",
- "sys_util",
+ "vm_memory",
 ]
 
 [[package]]
@@ -331,9 +365,9 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7abc8dd8451921606d809ba32e95b6111925cd2906060d2dcc29c070220503eb"
+checksum = "fc587bc0ec293155d5bfa6b9891ec18a1e330c234f896ea47fbada4cadbe47e6"
 dependencies = [
  "cfg-if",
  "libc",
@@ -344,45 +378,63 @@ dependencies = [
 name = "gpu_buffer"
 version = "0.1.0"
 dependencies = [
+ "base",
  "data_model",
- "sys_util",
 ]
 
 [[package]]
 name = "gpu_display"
 version = "0.1.0"
 dependencies = [
+ "base",
  "cc",
  "data_model",
  "libc",
  "linux_input_sys",
- "sys_util",
 ]
 
 [[package]]
 name = "gpu_renderer"
 version = "0.1.0"
 dependencies = [
+ "base",
  "data_model",
  "libc",
- "sys_util",
+ "vm_memory",
 ]
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3deed196b6e7f9e44a2ae8d94225d80302d81208b1bb673fd21fe634645c85a9"
+checksum = "4c30f6d0bc6b00693347368a67d41b58f2fb851215ff1da49e90fe2c5c667151"
 dependencies = [
  "libc",
 ]
 
 [[package]]
-name = "io_jail"
+name = "hypervisor"
 version = "0.1.0"
 dependencies = [
+ "base",
+ "bit_field",
+ "data_model",
+ "enumn",
+ "kvm",
+ "kvm_sys",
  "libc",
- "minijail-sys",
+ "msg_socket",
+ "sync",
+ "vm_memory",
+]
+
+[[package]]
+name = "io_uring"
+version = "0.1.0"
+dependencies = [
+ "base",
+ "libc",
+ "syscall_defines",
 ]
 
 [[package]]
@@ -396,34 +448,37 @@ dependencies = [
 name = "kernel_loader"
 version = "0.1.0"
 dependencies = [
+ "base",
  "libc",
- "sys_util",
+ "vm_memory",
 ]
 
 [[package]]
 name = "kvm"
 version = "0.1.0"
 dependencies = [
+ "base",
  "data_model",
  "kvm_sys",
  "libc",
  "msg_socket",
- "sys_util",
+ "sync",
+ "vm_memory",
 ]
 
 [[package]]
 name = "kvm_sys"
 version = "0.1.0"
 dependencies = [
+ "base",
  "libc",
- "sys_util",
 ]
 
 [[package]]
 name = "libc"
-version = "0.2.74"
+version = "0.2.78"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2f02823cf78b754822df5f7f268fb59822e7296276d3e069d8e8cb26a14bd10"
+checksum = "aa7087f49d294270db4e1928fc110c976cd4b9e5a16348e0a1df09afa99e6c98"
 
 [[package]]
 name = "libcras"
@@ -440,9 +495,9 @@ dependencies = [
 name = "linux_input_sys"
 version = "0.1.0"
 dependencies = [
+ "base",
  "data_model",
  "libc",
- "sys_util",
 ]
 
 [[package]]
@@ -459,6 +514,14 @@ name = "memchr"
 version = "2.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"
+
+[[package]]
+name = "minijail"
+version = "0.2.1"
+dependencies = [
+ "libc",
+ "minijail-sys",
+]
 
 [[package]]
 name = "minijail-sys"
@@ -481,29 +544,30 @@ dependencies = [
 name = "msg_socket"
 version = "0.1.0"
 dependencies = [
+ "base",
  "cros_async",
  "data_model",
  "futures",
  "libc",
  "msg_on_socket_derive",
- "sys_util",
+ "sync",
 ]
 
 [[package]]
 name = "net_sys"
 version = "0.1.0"
 dependencies = [
- "sys_util",
+ "base",
 ]
 
 [[package]]
 name = "net_util"
 version = "0.1.0"
 dependencies = [
+ "base",
  "data_model",
  "libc",
  "net_sys",
- "sys_util",
 ]
 
 [[package]]
@@ -518,9 +582,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.4.0"
+version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b631f7e854af39a1739f401cf34a8a013dfe09eac4fa4dba91e9768bd28168d"
+checksum = "260e51e7efe62b592207e9e13a68e43692a7a279171d6ba57abd208bf23645ad"
 
 [[package]]
 name = "p9"
@@ -532,24 +596,24 @@ dependencies = [
 
 [[package]]
 name = "paste"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6ddc8e145de01d9180ac7b78b9676f95a9c2447f6a88b2c2a04702211bc5d71"
+checksum = "0520af26d4cf99643dbbe093a61507922b57232d9978d8491fdc8f7b44573c8c"
 
 [[package]]
 name = "pin-project"
-version = "0.4.23"
+version = "0.4.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca4433fff2ae79342e497d9f8ee990d174071408f28f726d6d83af93e58e48aa"
+checksum = "2b9e280448854bd91559252582173b3bd1f8e094a0e644791c0628ca9b1f144f"
 dependencies = [
  "pin-project-internal",
 ]
 
 [[package]]
 name = "pin-project-internal"
-version = "0.4.23"
+version = "0.4.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c0e815c3ee9a031fdf5af21c10aa17c573c9c6a566328d99e3936c34e36461f"
+checksum = "c8c8b352676bc6a4c3d71970560b913cea444a7a921cc2e2d920225e4b91edaa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -579,9 +643,9 @@ dependencies = [
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "237a5ed80e274dbc66f86bd59c1e25edc039660be53194b5fe0a482e0f2612ea"
+checksum = "c36fa947111f5c62a733b652544dd0016a43ce89619538a8ef92724a6f501a20"
 
 [[package]]
 name = "proc-macro-hack"
@@ -597,9 +661,9 @@ checksum = "eba180dafb9038b050a4c280019bbedf9f2467b61e5d892dcad585bb57aadc5a"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.19"
+version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04f5f085b5d71e2188cb8271e5da0161ad52c3f227a661a3c135fdf28e258b12"
+checksum = "1e0704ee1a7e00d7bb417d0770ea303c1bccbabf0ef1667dae92b5967f5f8a71"
 dependencies = [
  "unicode-xid",
 ]
@@ -654,10 +718,10 @@ dependencies = [
 name = "qcow_utils"
 version = "0.1.0"
 dependencies = [
+ "base",
  "disk",
  "getopts",
  "libc",
- "sys_util",
 ]
 
 [[package]]
@@ -744,10 +808,10 @@ dependencies = [
 name = "resources"
 version = "0.1.0"
 dependencies = [
+ "base",
  "gpu_buffer",
  "libc",
  "msg_socket",
- "sys_util",
 ]
 
 [[package]]
@@ -758,9 +822,9 @@ checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 
 [[package]]
 name = "syn"
-version = "1.0.38"
+version = "1.0.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e69abc24912995b3038597a7a593be5053eb0fb44f3cc5beec0deb421790c1f4"
+checksum = "9c51d92969d209b54a98397e1b91c8ae82d8c87a7bb87df0b29aa2ad81454228"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -859,7 +923,7 @@ checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
 name = "usb_sys"
 version = "0.1.0"
 dependencies = [
- "sys_util",
+ "base",
 ]
 
 [[package]]
@@ -867,10 +931,10 @@ name = "usb_util"
 version = "0.1.0"
 dependencies = [
  "assertions",
+ "base",
  "data_model",
  "libc",
  "remain",
- "sys_util",
  "usb_sys",
 ]
 
@@ -878,7 +942,7 @@ dependencies = [
 name = "vfio_sys"
 version = "0.1.0"
 dependencies = [
- "sys_util",
+ "base",
 ]
 
 [[package]]
@@ -886,30 +950,43 @@ name = "vhost"
 version = "0.1.0"
 dependencies = [
  "assertions",
+ "base",
  "libc",
  "net_util",
- "sys_util",
  "virtio_sys",
+ "vm_memory",
 ]
 
 [[package]]
 name = "virtio_sys"
 version = "0.1.0"
 dependencies = [
- "sys_util",
+ "base",
 ]
 
 [[package]]
 name = "vm_control"
 version = "0.1.0"
 dependencies = [
+ "base",
  "data_model",
- "kvm",
+ "hypervisor",
  "libc",
  "msg_socket",
  "resources",
  "sync",
- "sys_util",
+ "vm_memory",
+]
+
+[[package]]
+name = "vm_memory"
+version = "0.1.0"
+dependencies = [
+ "base",
+ "cros_async",
+ "data_model",
+ "libc",
+ "syscall_defines",
 ]
 
 [[package]]
@@ -966,17 +1043,17 @@ dependencies = [
  "acpi_tables",
  "arch",
  "assertions",
+ "base",
  "data_model",
  "devices",
- "io_jail",
+ "hypervisor",
  "kernel_cmdline",
  "kernel_loader",
- "kvm",
- "kvm_sys",
  "libc",
+ "minijail",
  "remain",
  "resources",
  "sync",
- "sys_util",
  "vm_control",
+ "vm_memory",
 ]

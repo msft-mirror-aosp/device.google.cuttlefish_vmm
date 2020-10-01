@@ -1,4 +1,4 @@
-cargo 1.45.1 (f242df6ed 2020-07-22)
-release: 1.45.1
-commit-hash: f242df6edb897f6f69d393a22bb257f5af0f52d0
-commit-date: 2020-07-22
+cargo 1.46.0 (149022b1d 2020-07-17)
+release: 1.46.0
+commit-hash: 149022b1d8f382e69c1616f6a46b69ebf59e2dea
+commit-date: 2020-07-17

@@ -30,6 +30,13 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
+  name: "aarch64_linux_gnu_libdrm.so.2_for_crosvm",
+  srcs: ["aarch64-linux-gnu/bin/libdrm.so.2"],
+  stem: "libdrm.so.2",
+  relative_install_path: "aarch64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
   name: "aarch64_linux_gnu_libepoxy.so.0_for_crosvm",
   srcs: ["aarch64-linux-gnu/bin/libepoxy.so.0"],
   stem: "libepoxy.so.0",
@@ -82,6 +89,13 @@ cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libc++.so.1_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libc++.so.1"],
   stem: "libc++.so.1",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libdrm.so.2_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libdrm.so.2"],
+  stem: "libdrm.so.2",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
 }
