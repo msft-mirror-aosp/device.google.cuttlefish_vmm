@@ -392,7 +392,7 @@ aarch64_build() {
 }
 
 x86_64_retry() {
-  MINIGBM_DRV="I915 RADEON VC4" BUILD_GFXSTREAM=1 compile
+  MINIGBM_DRV="I915 RADEON VC4" BUILD_CROSVM=1 BUILD_GFXSTREAM=1 compile
 }
 
 x86_64_build() {
