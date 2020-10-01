@@ -65,6 +65,13 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/crosvm"],
+  stem: "crosvm",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libandroid_emu_shared.so_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libandroid-emu-shared.so"],
   stem: "libandroid-emu-shared.so",
@@ -86,6 +93,20 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libepoxy.so.0_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libepoxy.so.0"],
+  stem: "libepoxy.so.0",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libgbm.so.1_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libgbm.so.1"],
+  stem: "libgbm.so.1",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libgfxstream_backend.so_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libgfxstream_backend.so"],
   stem: "libgfxstream_backend.so",
@@ -93,9 +114,23 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libminijail.so_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libminijail.so"],
+  stem: "libminijail.so",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libOpenglRender.so_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libOpenglRender.so"],
   stem: "libOpenglRender.so",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host_only"],
+}
+cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libvirglrenderer.so.1_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libvirglrenderer.so.1"],
+  stem: "libvirglrenderer.so.1",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
 }
