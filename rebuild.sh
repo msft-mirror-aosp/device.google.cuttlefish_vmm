@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # Common code to build a host image on GCE
 
 # INTERNAL_extra_source may be set to a directory containing the source for
@@ -10,7 +8,7 @@ set -e
 # INTERNAL_IP can be set to --internal-ip run on a GCE instance
 # The instance will need --scope compute-rw
 
-source "${ANDROID_BUILD_TOP}/external/shflags/shflags"
+source "${ANDROID_BUILD_TOP}/external/shflags/src/shflags"
 DIR="${ANDROID_BUILD_TOP}/device/google/cuttlefish_vmm"
 
 # ARM-board options
@@ -48,6 +46,8 @@ DEFINE_string gce_zone "$(gcloud config get-value compute/zone)" "Zone to use" "
 DEFINE_string manifest "" "Path to custom manifest to use for the build"
 DEFINE_boolean reuse false "Set to true to reuse a previously-set-up instance."
 DEFINE_boolean reuse_resync false "Reuse a previously-set-up instance, but clean and re-sync the sources. Overrides --reuse if both are specified."
+
+set -e
 
 SSH_FLAGS=(${INTERNAL_IP})
 
