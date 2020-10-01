@@ -155,7 +155,7 @@ fetch_source() {
   fi
 
   cp ${CUSTOM_MANIFEST} manifest.xml
-  repo init --partial-clone -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
+  repo init --depth=1 -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
   repo sync
 }
 
