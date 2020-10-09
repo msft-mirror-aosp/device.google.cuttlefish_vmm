@@ -292,7 +292,7 @@ compile_gfxstream() {
 
   # TODO: Fix or remove network unit tests that are failing in docker,
   # so we can take out "notests"
-  python3 android/build/python/cmake.py --gfxstream_only --notests
+  python3 android/build/python/cmake.py --gfxstream_only --no-tests
   local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
 
   chmod +x "${dist_dir}/libc++.so.1"
