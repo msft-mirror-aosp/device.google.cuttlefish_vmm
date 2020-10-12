@@ -295,6 +295,12 @@ compile_gfxstream() {
   python3 android/build/python/cmake.py --gfxstream_only --notests
   local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
 
+  chmod +x "${dist_dir}/libc++.so.1"
+  chmod +x "${dist_dir}/libandroid-emu-shared.so"
+  chmod +x "${dist_dir}/libemugl_common.so"
+  chmod +x "${dist_dir}/libOpenglRender.so"
+  chmod +x "${dist_dir}/libgfxstream_backend.so"
+
   cp "${dist_dir}/libc++.so.1" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libemugl_common.so" "${OUTPUT_LIB_DIR}"
