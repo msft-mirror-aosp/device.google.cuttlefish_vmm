@@ -5,7 +5,7 @@ autoconf	2.69-11
 automake	1:1.16.1-4
 autopoint	0.19.8.1-9
 autotools-dev	20180224.1
-base-files	10.3+deb10u4
+base-files	10.3+deb10u5
 base-passwd	3.5.46
 bash	5.0-4
 binutils	2.31.1-16

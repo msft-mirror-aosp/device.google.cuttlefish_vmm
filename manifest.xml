@@ -13,35 +13,35 @@
   <project groups="crosvm" name="platform/tools/repohooks" path="tools/repohooks" revision="3798d7e067b927a16dc9e47bc6af949f9a2f4e20"/>
   <repo-hooks enabled-list="pre-upload" in-project="platform/tools/repohooks"/>
   <project groups="gfxstream" name="platform/external/ffmpeg" path="external/ffmpeg" revision="5c6f92dd1b16590153367ce79ed9b098cace354f"/>
-  <project groups="gfxstream" name="platform/external/boringssl" path="external/boringssl" revision="ba9db8781ec11859132f543aebff5d6093214751"/>
+  <project groups="gfxstream" name="platform/external/boringssl" path="external/boringssl" revision="07e050eb7fd8a6c6456bf6ce6cd7c289b2e338ef"/>
   <project groups="gfxstream" name="platform/prebuilts/ninja/linux-x86" path="prebuilts/ninja/linux-x86" revision="7ef4cb95e1ed4305e99f03a8e8ad28d26134a45b"/>
   <project groups="gfxstream" name="device/generic/vulkan-cereal" path="device/generic/vulkan-cereal" revision="ea978cef5a41c292dd9bd0ce9bf08648e76ca030"/>
   <project groups="gfxstream" name="platform/external/protobuf" path="external/protobuf" revision="ca15ad7fb89a626c0d2a98240b11a2523727f9be"/>
   <project groups="gfxstream" name="platform/external/libusb" path="external/libusb" revision="ad0473413edec14805e59599ff537eba0f5b8d33"/>
   <project groups="gfxstream" name="platform/external/grpc-grpc" path="external/grpc" revision="0d80ea35ba09d0462ca13f236cc9ddc3fb749c57"/>
-  <project groups="gfxstream" name="platform/external/googletest" path="external/googletest" revision="38e8cf709f2461c458dc487a3455022900af783a"/>
+  <project groups="gfxstream" name="platform/external/googletest" path="external/googletest" revision="ee3fca52fa6409aacab73bf519633d21a3a3a738"/>
   <project groups="gfxstream" name="platform/external/tinyobjloader" path="external/tinyobjloader" revision="d16a940067fbc191364fc1d3e2a2d907209c9320"/>
-  <project groups="gfxstream" name="device/generic/goldfish-opengl" path="device/generic/goldfish-opengl" revision="3eb1c73065464bcf703069e48bd6b17a31bd8fc8"/>
+  <project groups="gfxstream" name="device/generic/goldfish-opengl" path="device/generic/goldfish-opengl" revision="8d4f39f4a7361d959f0e1f2d019fe210a9f31920"/>
   <project groups="gfxstream" name="platform/external/libffi" path="external/libffi" revision="30bc66eb2043d8434e94f29beda87001e58c2a34"/>
   <project groups="gfxstream" name="platform/external/angle" path="external/angle" revision="61ed0a943789204b9cc14074afdfb8587a345ef8"/>
   <project groups="gfxstream" name="platform/external/libpng" path="external/libpng" revision="5d19b1bb0f5694f2ae47b3cc2ccfeb571764b439"/>
   <project groups="gfxstream" name="platform/external/lz4" path="external/lz4" revision="1a184fdeb99f4cc11b774ac5b0b824b38105ec6c"/>
   <project groups="gfxstream" name="platform/external/nasm" path="external/nasm" revision="645e4f02c622ba67eb754000cc00c9db8be31f85"/>
   <project groups="gfxstream" name="platform/external/curl" path="external/curl" revision="1da4b04273638c8afe6f88bd7a7ccfb693640773"/>
-  <project groups="gfxstream" name="platform/external/libyuv" path="external/libyuv" revision="2ee3028b36ac61abed29cbb379a411a98fe31677"/>
+  <project groups="gfxstream" name="platform/external/libyuv" path="external/libyuv" revision="df6bc4ade7d8a2923269e543b27175eeee26e90b"/>
   <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/protobuf" path="prebuilts/android-emulator-build/protobuf" revision="8e2a5472dd374e6c971d30eb3d00898a8c1a25c8"/>
-  <project groups="gfxstream" name="platform/prebuilts/clang/host/linux-x86" path="prebuilts/clang/host/linux-x86" revision="0e9e7035bf8ad42437c6156e5950eab13655b26c"/>
-  <project groups="gfxstream" name="platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" path="prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" revision="90e45fec56fdeac84c9eb174c63fa6e748c6faa9"/>
-  <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/common" path="prebuilts/android-emulator-build/common" revision="8314f26e316eaf90496cba19ecedd69aeb00b895"/>
+  <project groups="gfxstream" name="platform/prebuilts/clang/host/linux-x86" path="prebuilts/clang/host/linux-x86" revision="8c62cb647097f74de4fef942e39d845ecb476c10"/>
+  <project groups="gfxstream" name="platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" path="prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8" revision="70a8d2affe5a31cbb6ae03469a83981b3331c9a4"/>
+  <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/common" path="prebuilts/android-emulator-build/common" revision="46f6c3d021ff6ec4a4d1464fe921d2eb1608c5c9"/>
   <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/mesa" path="prebuilts/android-emulator-build/mesa" revision="be7c00f399b415511d73308f0af0c0310512aced"/>
   <project groups="gfxstream" name="platform/external/google-breakpad" path="external/google-breakpad" revision="a1414818b9f9810a3b45f1f55d9c00f5116ec7d9"/>
-  <project groups="gfxstream" name="platform/external/deqp" path="external/deqp" revision="ee2101f344ad88ceee4e15ce4afcf2eab2df3c9d"/>
+  <project groups="gfxstream" name="platform/external/deqp" path="external/deqp" revision="7949c69a10e39ce76e2af700a1c3ee29756ad51e"/>
   <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/curl" path="prebuilts/android-emulator-build/curl" revision="06f0905068b9ebfdd2d11b4d310c36b68c2fbe2f"/>
   <project groups="gfxstream" name="platform/external/zlib" path="external/zlib" revision="7656f9eff09cc38244978773777ee64b7b31155d"/>
   <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/mesa-deps" path="prebuilts/android-emulator-build/mesa-deps" revision="17837fdb1889014fa01cbbbda56afc9b6034815f"/>
   <project groups="gfxstream" name="platform/external/libvpx" path="external/libvpx" revision="62332cf39b0302e240acb10ed78d61d5ea282a39"/>
   <project groups="gfxstream" name="platform/external/c-ares" path="external/cares" revision="b88261c9132d21c234dfbf36db3c6c3f5780051a"/>
-  <project groups="gfxstream" name="platform/external/qemu" path="external/qemu" revision="57b6653ba209c69ca762704c3245339189b175b2"/>
+  <project groups="gfxstream" name="platform/external/qemu" path="external/qemu" revision="1ff47c5b95b509f124a653e5b50568f63204cda4"/>
   <project groups="gfxstream" name="platform/external/astc-codec" path="external/astc-codec" revision="17ae36822a8084f45ae51f9031e81f8318254f33"/>
   <project groups="gfxstream" name="platform/prebuilts/android-emulator-build/qemu-android-deps" path="prebuilts/android-emulator-build/qemu-android-deps" revision="715d3bed0a3dc4f9980528c9bfb81469f2d3cbab"/>
   <project groups="gfxstream" name="platform/external/google-benchmark" path="external/google-benchmark" revision="db1632fadc79df388a2a7248157c965ee40248a1"/>
