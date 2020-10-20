@@ -298,6 +298,13 @@ compile_crosvm() {
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
+  # Workaround for aosp/1412815
+  cargo install protobuf-codegen
+  cd "${SOURCE_DIR}/platform/crosvm/protos/src"
+  sed -i "s/pub use cdisk_spec_proto::cdisk_spec/pub mod cdisk_spec/" lib.rs
+  PATH="$HOME/.cargo/bin:$PATH" protoc --rust_out . cdisk_spec.proto
+  cd "${SOURCE_DIR}/platform/crosvm"
+
   local crosvm_features=audio,gpu,composite-disk,virtio-gpu-next
 
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then

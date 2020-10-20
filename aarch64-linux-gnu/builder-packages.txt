@@ -5,7 +5,7 @@ autoconf	2.69-11
 automake	1:1.16.1-4
 autopoint	0.19.8.1-9
 autotools-dev	20180224.1
-base-files	10.3+deb10u5
+base-files	10.3+deb10u6
 base-passwd	3.5.46
 bash	5.0-4
 binutils	2.31.1-16
@@ -199,7 +199,7 @@ libkrb5support0:arm64	1.17-3
 libksba8:arm64	1.3.5-2
 libldap-2.4-2:arm64	2.4.47+dfsg-3+deb10u2
 libldap-common	2.4.47+dfsg-3+deb10u2
-libllvm7:arm64	1:7.0.1-8
+libllvm7:arm64	1:7.0.1-8+deb10u2
 liblocale-gettext-perl	1.07-3+b4
 liblockfile-bin	1.14-1.1
 liblockfile1:arm64	1.14-1.1
@@ -304,11 +304,11 @@ libwayland-dev:arm64	1.16.0-1
 libwayland-egl1:arm64	1.16.0-1
 libwayland-server0:arm64	1.16.0-1
 libwrap0:arm64	7.6.q-28
-libx11-6:arm64	2:1.6.7-1
-libx11-data	2:1.6.7-1
-libx11-dev:arm64	2:1.6.7-1
-libx11-xcb-dev:arm64	2:1.6.7-1
-libx11-xcb1:arm64	2:1.6.7-1
+libx11-6:arm64	2:1.6.7-1+deb10u1
+libx11-data	2:1.6.7-1+deb10u1
+libx11-dev:arm64	2:1.6.7-1+deb10u1
+libx11-xcb-dev:arm64	2:1.6.7-1+deb10u1
+libx11-xcb1:arm64	2:1.6.7-1+deb10u1
 libxau-dev:arm64	1:1.0.8-1+b2
 libxau6:arm64	1:1.0.8-1+b2
 libxcb-dri2-0:arm64	1.13.1-2
@@ -347,7 +347,7 @@ libxtables12:arm64	1.8.2-4
 libxxf86vm-dev:arm64	1:1.1.4-1+b2
 libxxf86vm1:arm64	1:1.1.4-1+b2
 libzstd1:arm64	1.3.8+dfsg-3
-linux-libc-dev:arm64	4.19.132-1
+linux-libc-dev:arm64	4.19.152-1
 login	1:4.5-1.1
 logrotate	3.14.0-4
 lsb-base	10.2019051400
