@@ -139,7 +139,7 @@ fetch_source() {
   fi
 
   cp ${CUSTOM_MANIFEST} manifest.xml
-  repo init --partial-clone -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
+  repo init --depth=1 -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
   repo sync
 }
 
@@ -276,8 +276,14 @@ compile_gfxstream() {
 
   # TODO: Fix or remove network unit tests that are failing in docker,
   # so we can take out "notests"
-  python3 android/build/python/cmake.py --gfxstream_only --notests
+  python3 android/build/python/cmake.py --gfxstream_only --no-tests
   local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
+
+  chmod +x "${dist_dir}/libc++.so.1"
+  chmod +x "${dist_dir}/libandroid-emu-shared.so"
+  chmod +x "${dist_dir}/libemugl_common.so"
+  chmod +x "${dist_dir}/libOpenglRender.so"
+  chmod +x "${dist_dir}/libgfxstream_backend.so"
 
   cp "${dist_dir}/libc++.so.1" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
