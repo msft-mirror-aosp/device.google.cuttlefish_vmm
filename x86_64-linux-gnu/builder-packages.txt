@@ -5,7 +5,7 @@ autoconf	2.69-11
 automake	1:1.16.1-4
 autopoint	0.19.8.1-9
 autotools-dev	20180224.1
-base-files	10.3+deb10u5
+base-files	10.3+deb10u4
 base-passwd	3.5.46
 bash	5.0-4
 binutils	2.31.1-16
@@ -416,7 +416,7 @@ libyaml-0-2:amd64	0.2.1-1
 libyaml-libyaml-perl	0.76+repack-1
 libyaml-perl	1.27-1
 libzstd1:amd64	1.3.8+dfsg-3
-linux-libc-dev:amd64	4.19.146-1
+linux-libc-dev:amd64	4.19.152-1
 linux-libc-dev-arm64-cross	4.19.20-1cross1
 login	1:4.5-1.1
 logrotate	3.14.0-4
