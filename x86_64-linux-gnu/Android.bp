@@ -117,6 +117,12 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "video_device.policy_at_x86_64",
+  src: "etc/seccomp/video_device.policy",
+  filename: "video_device.policy",
+  sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "wl_device.policy_at_x86_64",
   src: "etc/seccomp/wl_device.policy",
   filename: "wl_device.policy",

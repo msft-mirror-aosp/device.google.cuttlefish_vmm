@@ -19,6 +19,7 @@ setup_env() {
   OUTPUT_LIB_DIR="${OUTPUT_DIR}/bin"
 
   export PATH="${PATH}:${TOOLS_DIR}:${HOME}/.local/bin"
+  export PKG_CONFIG_PATH="${WORKING_DIR}/usr/lib/pkgconfig"
 }
 
 set -o errexit
@@ -84,11 +85,11 @@ install_packages() {
       g++ \
       git \
       libcap-dev \
-      libdrm-dev \
       libfdt-dev \
       libegl1-mesa-dev \
       libgl1-mesa-dev \
       libgles2-mesa-dev \
+      libpciaccess-dev \
       libssl-dev \
       libtool \
       libusb-1.0-0-dev \
@@ -150,12 +151,11 @@ fetch_source() {
     # Building Crosvm currently depends using Chromium's directory scheme for subproject
     # directories ('third_party' vs 'external').
     fatal_echo "CUSTOM_MANIFEST must be provided. You most likely want to provide a full path to" \
-               "a copy of device/google/cuttlefish_vmm/${ARCH}-linux-gnu/manifest.xml."
+               "a copy of device/google/cuttlefish_vmm/manifest.xml."
   fi
 
-  repo init -q -u https://android.googlesource.com/platform/manifest
-  cp "${CUSTOM_MANIFEST}" .repo/manifests
-  repo init -m "${CUSTOM_MANIFEST}"
+  cp ${CUSTOM_MANIFEST} manifest.xml
+  repo init --depth=1 -q -u https://android.googlesource.com/platform/manifest -m ../../manifest.xml
   repo sync
 }
 
@@ -174,10 +174,32 @@ resync_source() {
   fetch_source
 }
 
+compile_libdrm() {
+  cd "${SOURCE_DIR}/external/libdrm"
+
+  meson build \
+    --libdir="${WORKING_DIR}/usr/lib" \
+    --prefix="${WORKING_DIR}/usr" \
+    -Damdgpu=false \
+    -Dfreedreno=false \
+    -Dintel=false \
+    -Dlibkms=false \
+    -Dnouveau=false \
+    -Dradeon=false \
+    -Dvc4=false \
+    -Dvmwgfx=false
+
+  cd build
+
+  ninja install
+
+  cp "${WORKING_DIR}"/usr/lib/libdrm.so.2 "${OUTPUT_LIB_DIR}"
+}
+
 compile_minijail() {
   echo "Compiling Minijail..."
 
-  cd "${SOURCE_DIR}/external/minijail"
+  cd "${SOURCE_DIR}/platform/minijail"
 
   make -j OUT="${WORKING_DIR}"
 
@@ -207,8 +229,7 @@ compile_minigbm() {
     "${make_flags[@]}" \
     CPPFLAGS="${cpp_flags[*]}" \
     DESTDIR="${WORKING_DIR}" \
-    OUT="${WORKING_DIR}" \
-    PKG_CONFIG=pkg-config
+    OUT="${WORKING_DIR}"
 
   cp ${WORKING_DIR}/usr/lib/libgbm.so.1 "${OUTPUT_LIB_DIR}"
 }
@@ -218,7 +239,6 @@ compile_epoxy() {
 
   meson build \
     --libdir="${WORKING_DIR}/usr/lib" \
-    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dglx=no \
     -Dx11=false \
@@ -249,10 +269,10 @@ compile_virglrenderer() {
 
   meson build \
     --libdir="${WORKING_DIR}/usr/lib" \
-    --pkg-config-path="${WORKING_DIR}/usr/lib/pkgconfig" \
     --prefix="${WORKING_DIR}/usr" \
     -Dplatforms=egl \
-    -Dgbm_allocation=false
+    -Dminigbm_allocation=false \
+    -Dunstable_apis=true
 
   cd build
 
@@ -272,8 +292,14 @@ compile_gfxstream() {
 
   # TODO: Fix or remove network unit tests that are failing in docker,
   # so we can take out "notests"
-  python3 android/build/python/cmake.py --gfxstream_only --notests
+  python3 android/build/python/cmake.py --gfxstream_only --no-tests
   local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
+
+  chmod +x "${dist_dir}/libc++.so.1"
+  chmod +x "${dist_dir}/libandroid-emu-shared.so"
+  chmod +x "${dist_dir}/libemugl_common.so"
+  chmod +x "${dist_dir}/libOpenglRender.so"
+  chmod +x "${dist_dir}/libgfxstream_backend.so"
 
   cp "${dist_dir}/libc++.so.1" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
@@ -288,7 +314,14 @@ compile_crosvm() {
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
-  local crosvm_features=gpu,composite-disk
+  # Workaround for aosp/1412815
+  cargo install protobuf-codegen
+  cd "${SOURCE_DIR}/platform/crosvm/protos/src"
+  sed -i "s/pub use cdisk_spec_proto::cdisk_spec/pub mod cdisk_spec/" lib.rs
+  PATH="$HOME/.cargo/bin:$PATH" protoc --rust_out . cdisk_spec.proto
+  cd "${SOURCE_DIR}/platform/crosvm"
+
+  local crosvm_features=audio,gpu,composite-disk,virtio-gpu-next
 
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       crosvm_features+=,gfxstream
@@ -339,30 +372,31 @@ compile() {
     "${OUTPUT_SECCOMP_DIR}" \
     "${OUTPUT_LIB_DIR}"
 
-  compile_minijail
-
-  compile_minigbm
-
-  compile_epoxy
-
-  compile_virglrenderer
+  if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_libdrm
+      compile_minijail
+      compile_minigbm
+      compile_epoxy
+      compile_virglrenderer
+  fi
 
   # TODO: Finish the aarch64 cross/native gfxstream build
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       compile_gfxstream
   fi
 
-  compile_crosvm
+  if [[ $BUILD_CROSVM -eq 1 ]]; then
+      compile_crosvm
+  fi
 
   compile_crosvm_seccomp
 
   dpkg-query -W > "${OUTPUT_DIR}/builder-packages.txt"
-  repo manifest -r -o "${OUTPUT_DIR}/manifest.xml"
   echo "Results in ${OUTPUT_DIR}"
 }
 
 aarch64_retry() {
-  MINIGBM_DRV="RADEON VC4" compile
+  MINIGBM_DRV="RADEON VC4" BUILD_CROSVM=1 compile
 }
 
 aarch64_build() {
@@ -371,7 +405,7 @@ aarch64_build() {
 }
 
 x86_64_retry() {
-  MINIGBM_DRV="I915 RADEON VC4" BUILD_GFXSTREAM=1 compile
+  MINIGBM_DRV="I915 RADEON VC4" BUILD_CROSVM=1 BUILD_GFXSTREAM=1 compile
 }
 
 x86_64_build() {

@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # Copyright 2020 - The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the',  help='License');
@@ -42,6 +43,7 @@ gfxstream_projects = set([
   "platform/external/libvpx",
   "platform/external/libyuv",
   "platform/external/libpng",
+  "platform/external/libusb",
   "platform/external/lz4",
   "platform/external/protobuf",
   "platform/external/qemu",
@@ -72,10 +74,10 @@ def generate_filtered_gfxstream_projects(filename):
         if e.attrib["name"] in gfxstream_projects:
             outp = etree.SubElement(out, "project")
             outs.append(outp)
+            outp.set("groups", "gfxstream")
             outp.set("name", e.attrib["name"])
             outp.set("path", e.attrib["path"])
             outp.set("revision", e.attrib["revision"])
-            outp.set("clone-depth", "1")
 
     return dict(map(lambda e: (e.attrib["name"], e), outs))
 
@@ -89,7 +91,6 @@ def update_projects(current_gfxstream_projects, target_manifest_filename):
     for e in target_root.findall("project"):
         if e.attrib["name"] in gfxstream_projects:
             e.set("revision", current_gfxstream_projects[e.attrib["name"]].attrib["revision"])
-            e.set("clone-depth", "1")
             found_projects.append(e.attrib["name"])
 
     projects_to_add = gfxstream_projects - set(found_projects)
@@ -97,10 +98,10 @@ def update_projects(current_gfxstream_projects, target_manifest_filename):
     for p in projects_to_add:
         project_element = current_gfxstream_projects[p]
         outp = etree.SubElement(target_root, "project")
+        outp.set("groups", project_element.attrib["groups"])
         outp.set("name", project_element.attrib["name"])
         outp.set("path", project_element.attrib["path"])
         outp.set("revision", project_element.attrib["revision"])
-        outp.set("clone-depth", "1")
 
     return target_root
 
@@ -116,6 +117,6 @@ print("Result: ")
 print(output_string.decode())
 print("Writing result to %s" % target_manifest_filename)
 
-fh = open(target_manifest_filename, 'w')
+fh = open(target_manifest_filename, 'wb')
 fh.write(output_string)
 fh.close()

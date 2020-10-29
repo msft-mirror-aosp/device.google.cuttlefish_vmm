@@ -47,6 +47,8 @@ DEFINE_string manifest "" "Path to custom manifest to use for the build"
 DEFINE_boolean reuse false "Set to true to reuse a previously-set-up instance."
 DEFINE_boolean reuse_resync false "Reuse a previously-set-up instance, but clean and re-sync the sources. Overrides --reuse if both are specified."
 
+set -e
+
 SSH_FLAGS=(${INTERNAL_IP})
 
 wait_for_instance() {
@@ -361,9 +363,8 @@ main() {
   relative_source_files=("rebuild-docker.sh"
      "rebuild-internal.sh"
      "Dockerfile"
-     "x86_64-linux-gnu/manifest.xml"
-     "aarch64-linux-gnu/manifest.xml"
      "policy-inliner.sh"
+     "manifest.xml"
      ".dockerignore")
   # These must match the definitions in the Dockerfile
   docker_flags=("-eSOURCE_DIR=/source" "-eWORKING_DIR=/working" "-eOUTPUT_DIR=/output" "-eTOOLS_DIR=/static/tools")
@@ -381,8 +382,8 @@ main() {
     custom_manifest="${FLAGS_manifest}"
     docker_flags+=("-eCUSTOM_MANIFEST=/static/custom.xml")
   else
-    custom_manifest="${DIR}/${FLAGS_docker_arch}-linux-gnu/manifest.xml"
-    docker_flags+=("-eCUSTOM_MANIFEST=/static/${FLAGS_docker_arch}-linux-gnu/manifest.xml")
+    custom_manifest="${DIR}/manifest.xml"
+    docker_flags+=("-eCUSTOM_MANIFEST=/static/manifest.xml")
   fi
   local -a _prepare_source=(setup_env fetch_source);
   local -i _reuse=0
