@@ -154,6 +154,15 @@ LOCAL_MODULE_IS_HOST_MODULE := true
 include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := video_device.policy
+LOCAL_SRC_FILES := etc/seccomp/video_device.policy
+LOCAL_MODULE_PATH := $(HOST_OUT)/usr/share/cuttlefish/x86_64-linux-gnu/seccomp
+LOCAL_MODULE_STEM := $(LOCAL_MODULE)
+LOCAL_MODULE_CLASS := ETC
+LOCAL_MODULE_IS_HOST_MODULE := true
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := wl_device.policy
 LOCAL_SRC_FILES := etc/seccomp/wl_device.policy
 LOCAL_MODULE_PATH := $(HOST_OUT)/usr/share/cuttlefish/x86_64-linux-gnu/seccomp
