@@ -86,6 +86,7 @@ install_packages() {
       git \
       libcap-dev \
       libfdt-dev \
+      libgbm-dev \
       libegl1-mesa-dev \
       libgl1-mesa-dev \
       libgles2-mesa-dev \
