@@ -58,13 +58,6 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
-  name: "aarch64_linux_gnu_libvirglrenderer.so.0_for_crosvm",
-  srcs: ["aarch64-linux-gnu/bin/libvirglrenderer.so.0"],
-  stem: "libvirglrenderer.so.0",
-  relative_install_path: "aarch64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
   name: "aarch64_linux_gnu_libvirglrenderer.so.1_for_crosvm",
   srcs: ["aarch64-linux-gnu/bin/libvirglrenderer.so.1"],
   stem: "libvirglrenderer.so.1",
