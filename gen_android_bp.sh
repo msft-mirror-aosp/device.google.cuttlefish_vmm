@@ -32,13 +32,6 @@ function check_location() {
 
 my_name=`basename $0`
 
-# define arch dir pattern: e.g. ${ARCH}-linux-gnu
-function get_arch_dir() {
-  local suffix="-linux-gnu"
-  local arch=$1
-  echo ${arch}${suffix}
-}
-
 # take arch, return the path of the output Android.bp file
 function get_output_file() {
   local blueprint_dir=$1
@@ -115,12 +108,6 @@ function gen_module() {
 
 function gen_main_android_bp() {
   gen_license 2019
-
-  gen_module "cc_prebuilt_binary" '  ' \
-    --name="\"common_crosvm\"" \
-    --stem="\"crosvm"\" \
-    --srcs="[\"scripts/crosvm\"]" \
-    --defaults="[\"cuttlefish_host_only\"]"
 
   cat <<EOF
 // NOTE: Using cc_prebuilt_binary because cc_prebuilt_library can't handle stem on pie
