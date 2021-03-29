@@ -1,4 +1,4 @@
-FROM debian:stretch-slim AS docker_vmm
+FROM debian:buster-slim AS docker_vmm
 
 ENV container docker
 ENV LC_ALL C.UTF-8
