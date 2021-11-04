@@ -64,6 +64,9 @@ function build_with_docker() {
 
   local _build_or_retry=${_arch}_retry
 
+  # problem and solution suggested by https://serverfault.com/questions/1053187/systemd-fails-to-run-in-a-docker-container-when-using-cgroupv2-cgroupns-priva
+  # FIXME: Look into using systemd slices instead
+  docker_run="docker run --tmpfs /run --tmpfs /run/lock -v /sys/fs/cgroup:/sys/fs/cgroup:rw --cgroupns=host"
   if [[ ${_reuse} -ne 1 ]]; then
     _build_or_retry=${_arch}_build
     if [[ ${_persistent} -eq 1 ]]; then
@@ -74,7 +77,7 @@ function build_with_docker() {
         export DOCKER_CLI_EXPERIMENTAL=enabled
         # from
         # https://community.arm.com/developer/tools-software/tools/b/tools-software-ides-blog/posts/getting-started-with-docker-for-arm-on-linux
-        docker run --rm --privileged docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
+        $docker_run --privileged --rm docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
         docker buildx create \
           --name docker_vmm_${_arch}_builder \
           --platform ${map_uname_to_docker_builder_arch[${_arch}]} \
@@ -108,14 +111,12 @@ function build_with_docker() {
       if [[ -n "$(container_exists ${_container_name})" ]]; then
         docker rm -f ${_container_name}
       fi
-      docker run -d \
-        --privileged \
+      $docker_run -d \
         --name ${_container_name} \
         -h ${_container_name} \
         ${_docker_source} \
         ${_docker_working} \
         ${_docker_output} \
-        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
         ${_docker_image}:latest
     fi
 #  else
@@ -135,7 +136,7 @@ function build_with_docker() {
       /static/rebuild-internal.sh ${_prepare_source[@]} ${_build_or_retry}
     docker pause ${_container_name}
   else
-    docker run -it --rm \
+    $docker_run -it --rm \
       --user ${_user} \
       ${_docker_flags[@]} \
       ${_docker_source} \

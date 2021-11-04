@@ -35,7 +35,7 @@ DEFINE_string docker_uid "${UID}" "Docker-container user ID"
 
 DEFINE_boolean gce false "Build on a GCE instance"
 DEFINE_string gce_project "$(gcloud config get-value project)" "Project to use" "p"
-DEFINE_string gce_source_image_family debian-10 "Image familty to use as the base" "s"
+DEFINE_string gce_source_image_family debian-11 "Image familty to use as the base" "s"
 DEFINE_string gce_source_image_project debian-cloud "Project holding the base image" "m"
 DEFINE_string gce_instance "${USER}-build" "Instance name to create for the build" "i"
 DEFINE_string gce_user cuttlefish_crosvm_builder "User name to use on GCE when doing the build"

@@ -1,4 +1,5 @@
 Default host: x86_64-unknown-linux-gnu
+rustup home:  /home/cuttlefish_crosvm_builder/.rustup
 
 installed targets for active toolchain
 --------------------------------------
@@ -9,6 +10,6 @@ x86_64-unknown-linux-gnu
 active toolchain
 ----------------
 
-stable-x86_64-unknown-linux-gnu (overridden by '/source/platform/crosvm/rust-toolchain')
-rustc 1.47.0 (18bf6b4f0 2020-10-07)
+1.62.0-x86_64-unknown-linux-gnu (overridden by '/source/platform/crosvm/rust-toolchain')
+rustc 1.62.0 (a8314ef7d 2022-06-27)
 

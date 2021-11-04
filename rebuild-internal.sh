@@ -6,6 +6,10 @@
 
 : ${TOOLS_DIR:="$(pwd)/tools"}
 
+# Stable is usually too old for crosvm, but make sure you bump this
+# up as far as you can each time this script is touched..
+RUST_TOOLCHAIN_VER=1.62.0
+
 setup_env() {
   : ${SOURCE_DIR:="$(pwd)/source"}
   : ${WORKING_DIR:="$(pwd)/working"}
@@ -35,17 +39,15 @@ prepare_cargo() {
   cd
   rm -rf .cargo
   # Sometimes curl hangs. When it does, retry
-  retry curl -LO \
-    "https://static.rust-lang.org/rustup/archive/1.14.0/$(uname -m)-unknown-linux-gnu/rustup-init"
-  # echo "0077ff9c19f722e2be202698c037413099e1188c0c233c12a2297bf18e9ff6e7 *rustup-init" | sha256sum -c -
+  retry curl -L \
+    --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init
   chmod +x rustup-init
-  ./rustup-init -y --no-modify-path
+  ./rustup-init -y --no-modify-path --default-toolchain ${RUST_TOOLCHAIN_VER}
   source $HOME/.cargo/env
   if [[ -n "$1" ]]; then
     rustup target add "$1"
   fi
-  rustup component add rustfmt-preview
-  rm rustup-init
+  rm -f rustup-init
 
   if [[ -n "$1" ]]; then
   cat >>~/.cargo/config <<EOF
@@ -93,6 +95,7 @@ install_packages() {
       libssl-dev \
       libtool \
       libusb-1.0-0-dev \
+      libwayland-bin \
       libwayland-dev \
       make \
       nasm \
@@ -102,6 +105,7 @@ install_packages() {
       python \
       python3 \
       python3-pip \
+      wayland-protocols \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
   mkdir -p "${TOOLS_DIR}"
   curl https://storage.googleapis.com/git-repo-downloads/repo > "${TOOLS_DIR}/repo"
@@ -109,7 +113,7 @@ install_packages() {
 
   # Meson getting started guide mentions that the distro version is frequently
   # outdated and recommends installing via pip.
-  pip3 install meson
+  pip3 install --no-warn-script-location meson
 
   # Tools for building gfxstream
   pip3 install absl-py
@@ -217,7 +221,7 @@ compile_minigbm() {
 
   # The gbm used by upstream linux distros is not compatible with crosvm, which must use Chrome OS's
   # minigbm.
-  local cpp_flags=()
+  local cpp_flags=(-I/working/usr/include -I/working/usr/include/libdrm)
   local make_flags=()
   local minigbm_drv=(${MINIGBM_DRV})
   for drv in "${minigbm_drv[@]}"; do
@@ -271,8 +275,7 @@ compile_virglrenderer() {
     --libdir="${WORKING_DIR}/usr/lib" \
     --prefix="${WORKING_DIR}/usr" \
     -Dplatforms=egl \
-    -Dminigbm_allocation=false \
-    -Dunstable_apis=true
+    -Dminigbm_allocation=false
 
   cd build
 
@@ -287,24 +290,15 @@ compile_virglrenderer() {
 compile_gfxstream() {
   echo "Compiling gfxstream..."
 
-    # Note: depends on libepoxy
-  cd "${SOURCE_DIR}/external/qemu"
+  local dist_dir="${SOURCE_DIR}/device/generic/vulkan-cereal/build"
+  mkdir "${dist_dir}"
+  cd "${dist_dir}"
 
-  # TODO: Fix or remove network unit tests that are failing in docker,
-  # so we can take out "notests"
-  python3 android/build/python/cmake.py --gfxstream_only --no-tests
-  local dist_dir="${SOURCE_DIR}/external/qemu/objs/distribution/emulator/lib64"
+  cmake .. -G Ninja
+  ninja
 
-  chmod +x "${dist_dir}/libc++.so.1"
-  chmod +x "${dist_dir}/libandroid-emu-shared.so"
-  chmod +x "${dist_dir}/libemugl_common.so"
-  chmod +x "${dist_dir}/libOpenglRender.so"
   chmod +x "${dist_dir}/libgfxstream_backend.so"
 
-  cp "${dist_dir}/libc++.so.1" "${OUTPUT_LIB_DIR}"
-  cp "${dist_dir}/libandroid-emu-shared.so" "${OUTPUT_LIB_DIR}"
-  cp "${dist_dir}/libemugl_common.so" "${OUTPUT_LIB_DIR}"
-  cp "${dist_dir}/libOpenglRender.so" "${OUTPUT_LIB_DIR}"
   cp "${dist_dir}/libgfxstream_backend.so" "${OUTPUT_LIB_DIR}"
 }
 
@@ -314,19 +308,25 @@ compile_crosvm() {
   source "${HOME}/.cargo/env"
   cd "${SOURCE_DIR}/platform/crosvm"
 
+  sed -i 's,\(channel = "\).*\("\),\1'${RUST_TOOLCHAIN_VER}'\2,' rust-toolchain
+
   # Workaround for aosp/1412815
-  cargo install protobuf-codegen
   cd "${SOURCE_DIR}/platform/crosvm/protos/src"
-  sed -i "s/pub use cdisk_spec_proto::cdisk_spec/pub mod cdisk_spec/" lib.rs
-  PATH="$HOME/.cargo/bin:$PATH" protoc --rust_out . cdisk_spec.proto
+  cat >>lib.rs <<EOF
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/generated.rs"));
+}
+EOF
+  sed -i "s/pub use cdisk_spec_proto::cdisk_spec/pub use generated::cdisk_spec/" lib.rs
   cd "${SOURCE_DIR}/platform/crosvm"
 
-  local crosvm_features=audio,gpu,composite-disk,virtio-gpu-next
+  local crosvm_features=audio,gdb,gpu,composite-disk,usb,virgl_renderer
 
   if [[ $BUILD_GFXSTREAM -eq 1 ]]; then
       crosvm_features+=,gfxstream
   fi
 
+  GFXSTREAM_PATH="${OUTPUT_LIB_DIR}" \
   RUSTFLAGS="-C link-arg=-Wl,-rpath,\$ORIGIN -C link-arg=-L${OUTPUT_LIB_DIR}" \
     cargo build --features ${crosvm_features}
 
@@ -356,10 +356,7 @@ compile_crosvm_seccomp() {
       echo "${ARCH} is not supported"
       exit 15
   esac
-  policy-inliner.sh \
-    -p $(pwd)/seccomp/$subdir \
-    -o ${OUTPUT_SECCOMP_DIR} \
-    -c $(pwd)/seccomp/$subdir/common_device.policy
+  policy-inliner.sh -p $(pwd)/seccomp/$subdir -o ${OUTPUT_SECCOMP_DIR}
 }
 
 compile() {

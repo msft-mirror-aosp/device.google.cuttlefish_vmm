@@ -79,30 +79,9 @@ cc_prebuilt_binary {
   defaults: ["cuttlefish_host_only"],
 }
 cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libandroid_emu_shared.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libandroid-emu-shared.so"],
-  stem: "libandroid-emu-shared.so",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libc++.so.1_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libc++.so.1"],
-  stem: "libc++.so.1",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libdrm.so.2_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libdrm.so.2"],
   stem: "libdrm.so.2",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libemugl_common.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libemugl_common.so"],
-  stem: "libemugl_common.so",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
 }
@@ -131,13 +110,6 @@ cc_prebuilt_binary {
   name: "x86_64_linux_gnu_libminijail.so_for_crosvm",
   srcs: ["x86_64-linux-gnu/bin/libminijail.so"],
   stem: "libminijail.so",
-  relative_install_path: "x86_64-linux-gnu",
-  defaults: ["cuttlefish_host_only"],
-}
-cc_prebuilt_binary {
-  name: "x86_64_linux_gnu_libOpenglRender.so_for_crosvm",
-  srcs: ["x86_64-linux-gnu/bin/libOpenglRender.so"],
-  stem: "libOpenglRender.so",
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host_only"],
 }
