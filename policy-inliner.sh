@@ -15,9 +15,10 @@ function inline() {
   #
   input="$1"
   output="$2"
-  contents="$3"
+  common_device="$3"
+  gpu_common="$4"
 
-  if ! [[ -f $contents ]]; then
+  if [[ ! -f $common_device || ! -f $gpu_common ]]; then
     echo "the contents file in $0 is not a file or does not exist."
     exit 14
   fi
@@ -27,7 +28,10 @@ function inline() {
   while IFS= read -r line
   do
     if echo "$line" | egrep "@include[[:space:]]+/usr/share/policy/crosvm/common_device.policy" > /dev/null; then
-      cat $contents | egrep "^[a-zA-Z0-9_-]+:" >> $output
+      cat $common_device | egrep -v "^@frequency|^#" >> $output
+      continue
+    elif echo "$line" | egrep "@include[[:space:]]+/usr/share/policy/crosvm/gpu_common.policy" > /dev/null; then
+      cat $gpu_common | egrep -v "^@frequency|^#" >> $output
       continue
     fi
     echo $line >> $output
@@ -39,15 +43,12 @@ need_help="false"
 #
 # -p for crosvm seccomp policy directory
 # -o for output directory where the processed policies land
-# -c for contents file
 #
-while getopts ":p:o:c:h" op; do
+while getopts ":p:o:h" op; do
   case "$op" in
     p ) policy_dir=${OPTARG}
         ;;
     o ) output_dir=${OPTARG}
-        ;;
-    c ) contents_file=${OPTARG}
         ;;
     h ) need_help="true"
         ;;
@@ -61,10 +62,9 @@ if [ $OPTIND -eq 1 ]; then
 fi
 
 function help_n_exit() {
-  echo "must provide all the -o, -c, and -p options"
+  echo "must provide all the -o, and -p options"
   echo "-p for crosvm seccomp policy directory"
   echo "-o for output directory where the processed policies land"
-  echo "-c for contents file"
   exit 10
 }
 
@@ -85,7 +85,9 @@ fi
 
 for i in $(ls -1 $policy_dir); do
   if is_policy_file $i; then
-    inline $stripped_policy_dir/$i $stripped_output_dir/$i $stripped_policy_dir/common_device.policy
+    inline $stripped_policy_dir/$i $stripped_output_dir/$i \
+      $stripped_policy_dir/common_device.policy \
+      $stripped_policy_dir/gpu_common.policy
   fi
 done
 

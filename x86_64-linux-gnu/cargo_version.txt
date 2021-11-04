@@ -1,4 +1,8 @@
-cargo 1.47.0 (f3c7e066a 2020-08-28)
-release: 1.47.0
-commit-hash: f3c7e066ad66e05439cf8eab165a2de580b41aaf
-commit-date: 2020-08-28
+cargo 1.62.0 (a748cf5a3 2022-06-08)
+release: 1.62.0
+commit-hash: a748cf5a3e666bc2dcdf54f37adef8ef22196452
+commit-date: 2022-06-08
+host: x86_64-unknown-linux-gnu
+libgit2: 1.4.2 (sys:0.14.2 vendored)
+libcurl: 7.80.0-DEV (sys:0.4.51+curl-7.80.0 vendored ssl:OpenSSL/1.1.1n)
+os: OracleLinux 11.0.0 [64-bit]
