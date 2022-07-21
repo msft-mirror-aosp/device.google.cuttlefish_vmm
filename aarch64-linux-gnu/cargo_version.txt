@@ -1,4 +1,0 @@
-cargo 1.47.0 (f3c7e066a 2020-08-28)
-release: 1.47.0
-commit-hash: f3c7e066ad66e05439cf8eab165a2de580b41aaf
-commit-date: 2020-08-28
