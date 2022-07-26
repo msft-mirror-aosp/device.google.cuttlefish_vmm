@@ -39,6 +39,12 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "coiommu_device.policy_at_x86_64",
+  src: "etc/seccomp/coiommu_device.policy",
+  filename: "coiommu_device.policy",
+  sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "coiommu.policy_at_x86_64",
   src: "etc/seccomp/coiommu.policy",
   filename: "coiommu.policy",
@@ -123,6 +129,12 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "serial_device.policy_at_x86_64",
+  src: "etc/seccomp/serial_device.policy",
+  filename: "serial_device.policy",
+  sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "serial.policy_at_x86_64",
   src: "etc/seccomp/serial.policy",
   filename: "serial.policy",
@@ -180,6 +192,12 @@ prebuilt_usr_share_host {
   name: "wl_device.policy_at_x86_64",
   src: "etc/seccomp/wl_device.policy",
   filename: "wl_device.policy",
+  sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
+  name: "xhci_device.policy_at_x86_64",
+  src: "etc/seccomp/xhci_device.policy",
+  filename: "xhci_device.policy",
   sub_dir: "cuttlefish/x86_64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
