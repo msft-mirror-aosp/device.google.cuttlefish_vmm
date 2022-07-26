@@ -17,8 +17,9 @@ function inline() {
   output="$2"
   common_device="$3"
   gpu_common="$4"
+  serial="$5"
 
-  if [[ ! -f $common_device || ! -f $gpu_common ]]; then
+  if [[ ! -f $common_device || ! -f $gpu_common || ! -f $serial ]]; then
     echo "the contents file in $0 is not a file or does not exist."
     exit 14
   fi
@@ -32,6 +33,9 @@ function inline() {
       continue
     elif echo "$line" | egrep "@include[[:space:]]+/usr/share/policy/crosvm/gpu_common.policy" > /dev/null; then
       cat $gpu_common | egrep -v "^@frequency|^#" >> $output
+      continue
+    elif echo "$line" | egrep "@include[[:space:]]+/usr/share/policy/crosvm/serial.policy" > /dev/null; then
+      cat $serial | egrep -v "^@frequency|^#" >> $output
       continue
     fi
     echo $line >> $output
@@ -87,7 +91,8 @@ for i in $(ls -1 $policy_dir); do
   if is_policy_file $i; then
     inline $stripped_policy_dir/$i $stripped_output_dir/$i \
       $stripped_policy_dir/common_device.policy \
-      $stripped_policy_dir/gpu_common.policy
+      $stripped_policy_dir/gpu_common.policy \
+      $stripped_policy_dir/serial.policy
   fi
 done
 

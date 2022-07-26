@@ -309,7 +309,6 @@ compile_crosvm() {
   cd "${SOURCE_DIR}/platform/crosvm"
 
   sed -i 's,\(channel = "\).*\("\),\1'${RUST_TOOLCHAIN_VER}'\2,' rust-toolchain
-  sed -i '/1 << VIRTIO_GPU_F_RESOURCE_BLOB/d' devices/src/virtio/gpu/mod.rs
 
   # Workaround for aosp/1412815
   cd "${SOURCE_DIR}/platform/crosvm/protos/src"
