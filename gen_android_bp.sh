@@ -151,7 +151,8 @@ function gen_main_android_bp() {
   gen_license 2019
 
   cat <<EOF
-// NOTE: Using cc_prebuilt_binary because cc_prebuilt_library can't handle stem on pie
+// NOTE: Using cc_prebuilt_binary because cc_prebuilt_library will add
+//       unwanted .so file extensions when installing shared libraries
 
 EOF
 

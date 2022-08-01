@@ -27,9 +27,21 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "battery.policy_at_aarch64",
+  src: "etc/seccomp/battery.policy",
+  filename: "battery.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "block_device.policy_at_aarch64",
   src: "etc/seccomp/block_device.policy",
   filename: "block_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
+  name: "coiommu_device.policy_at_aarch64",
+  src: "etc/seccomp/coiommu_device.policy",
+  filename: "coiommu_device.policy",
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
@@ -45,15 +57,33 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "cras_snd_device.policy_at_aarch64",
+  src: "etc/seccomp/cras_snd_device.policy",
+  filename: "cras_snd_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "fs_device.policy_at_aarch64",
   src: "etc/seccomp/fs_device.policy",
   filename: "fs_device.policy",
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "gpu_common.policy_at_aarch64",
+  src: "etc/seccomp/gpu_common.policy",
+  filename: "gpu_common.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "gpu_device.policy_at_aarch64",
   src: "etc/seccomp/gpu_device.policy",
   filename: "gpu_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
+  name: "gpu_render_server.policy_at_aarch64",
+  src: "etc/seccomp/gpu_render_server.policy",
+  filename: "gpu_render_server.policy",
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
@@ -87,6 +117,12 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "serial_device.policy_at_aarch64",
+  src: "etc/seccomp/serial_device.policy",
+  filename: "serial_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "serial.policy_at_aarch64",
   src: "etc/seccomp/serial.policy",
   filename: "serial.policy",
@@ -111,9 +147,27 @@ prebuilt_usr_share_host {
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
+  name: "video_device.policy_at_aarch64",
+  src: "etc/seccomp/video_device.policy",
+  filename: "video_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
+  name: "vios_audio_device.policy_at_aarch64",
+  src: "etc/seccomp/vios_audio_device.policy",
+  filename: "vios_audio_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
   name: "wl_device.policy_at_aarch64",
   src: "etc/seccomp/wl_device.policy",
   filename: "wl_device.policy",
+  sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
+}
+prebuilt_usr_share_host {
+  name: "xhci_device.policy_at_aarch64",
+  src: "etc/seccomp/xhci_device.policy",
+  filename: "xhci_device.policy",
   sub_dir: "cuttlefish/aarch64-linux-gnu/seccomp",
 }
 prebuilt_usr_share_host {
