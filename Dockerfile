@@ -1,4 +1,6 @@
-FROM debian:bullseye-slim AS docker_vmm
+# NOTE: For now, don't be tempted to bump this to bullseye-slim, as Oxygen
+# still uses a glibc based on Debian 10, not Debian 11
+FROM debian:buster-slim AS docker_vmm
 
 ENV container docker
 ENV LC_ALL C.UTF-8

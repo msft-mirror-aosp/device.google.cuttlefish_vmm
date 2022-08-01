@@ -75,13 +75,14 @@ install_custom_scripts() {
 install_packages() {
   echo Installing packages...
   sudo dpkg --add-architecture arm64
+  echo "deb http://deb.debian.org/debian buster-backports main" | \
+    sudo tee -a /etc/apt/sources.list
   sudo apt-get update
   sudo apt-get install -y \
       autoconf \
       automake \
       build-essential \
       "$@" \
-      cmake \
       curl \
       gcc \
       g++ \
@@ -107,6 +108,8 @@ install_packages() {
       python3-pip \
       wayland-protocols \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
+  sudo apt-get install -y -t buster-backports \
+      cmake
   mkdir -p "${TOOLS_DIR}"
   curl https://storage.googleapis.com/git-repo-downloads/repo > "${TOOLS_DIR}/repo"
   chmod a+x "${TOOLS_DIR}/repo"
@@ -293,6 +296,10 @@ compile_gfxstream() {
   local dist_dir="${SOURCE_DIR}/device/generic/vulkan-cereal/build"
   mkdir "${dist_dir}"
   cd "${dist_dir}"
+
+  # Workaround for older gcc-8 in Debian buster
+  sed -i 's,\(-lGL -lX11 -ldl -lpthread\),\1 -lstdc++fs,' \
+    ../stream-servers/glestranslator/EGL/CMakeLists.txt
 
   cmake .. -G Ninja
   ninja
