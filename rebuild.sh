@@ -35,10 +35,9 @@ DEFINE_string docker_uid "${UID}" "Docker-container user ID"
 
 DEFINE_boolean gce false "Build on a GCE instance"
 DEFINE_string gce_project "$(gcloud config get-value project)" "Project to use" "p"
-DEFINE_string gce_source_image_family debian-11 "Image familty to use as the base" "s"
-DEFINE_string gce_source_image_project debian-cloud "Project holding the base image" "m"
 DEFINE_string gce_instance "${USER}-build" "Instance name to create for the build" "i"
 DEFINE_string gce_user cuttlefish_crosvm_builder "User name to use on GCE when doing the build"
+DEFINE_integer gce_vcpus 4 "Instance size (vcpus) to create"
 DEFINE_string gce_zone "$(gcloud config get-value compute/zone)" "Zone to use" "z"
 
 # Common options
@@ -193,20 +192,19 @@ function build_on_gce() {
     gcloud compute disks create \
       "${delete_instances[@]/%/-disk}" \
       "${project_zone_flags[@]}" \
-      --image-project="${FLAGS_gce_source_image_project}" \
-      --image-family="${FLAGS_gce_source_image_family}"
+      --image-project="debian-cloud" \
+      --image-family="debian-11"
     gcloud compute images create \
       "${delete_instances[@]/%/-image}" \
       --source-disk "${delete_instances[@]/%/-disk}" \
-      --project "${FLAGS_gce_project}" --source-disk-zone "${FLAGS_gce_zone}" \
-      --licenses "https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
+      --project "${FLAGS_gce_project}" --source-disk-zone "${FLAGS_gce_zone}"
     gcloud compute instances create \
       "${delete_instances[@]}" \
       "${project_zone_flags[@]}" \
       --image "${delete_instances[@]/%/-image}" \
       --boot-disk-size=200GB \
-      --machine-type=n1-standard-8 \
-      --min-cpu-platform "Intel Skylake"
+      --machine-type=n1-standard-"${FLAGS_gce_vcpus}" \
+      --network-interface=nic-type=GVNIC
 
     wait_for_instance "${FLAGS_gce_instance}" "${project_zone_flags[@]}"
 
