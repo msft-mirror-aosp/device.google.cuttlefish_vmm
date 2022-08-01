@@ -157,7 +157,8 @@ function gen_main_android_bp() {
     --defaults="[\"cuttlefish_host_only\"]"
 
   cat <<EOF
-// NOTE: Using cc_prebuilt_binary because cc_prebuilt_library can't handle stem on pie
+// NOTE: Using cc_prebuilt_binary because cc_prebuilt_library will add
+//       unwanted .so file extensions when installing shared libraries
 
 EOF
 
