@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<manifest>
+  <remote fetch=".." name="aosp" review="https://android-review.googlesource.com/"/>
+  <default remote="aosp" revision="master" sync-j="4"/>
+  <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
+  <repo-hooks enabled-list="pre-upload" in-project="platform/tools/repohooks"/>
+  <project name="platform/tools/repohooks" path="tools/repohooks" revision="e0447aa1766a3e1cb73c82c41ff9d411d45b57fb"/>
+  <project groups="crosvm" name="platform/external/crosvm" path="platform/crosvm" revision="6f1122fbe98e5964b1b208bd89578b399b25bfd8"/>
+  <project groups="crosvm" name="platform/external/libdrm" path="external/libdrm" revision="80cbd8394cff625c787dbb7c427f217df5f6d159"/>
+  <project groups="crosvm" name="platform/external/libepoxy" path="third_party/libepoxy" revision="f377eeac6e6425bb42ef6fe10e905c94d001d220"/>
+  <project groups="crosvm" name="platform/external/minigbm" path="third_party/minigbm" revision="6a8f9d534b9047e915c63f38340c8d49641872b8"/>
+  <project groups="crosvm" name="platform/external/minijail" path="platform/minijail" revision="537a1c9164b92135f5bc87c6fec53973a2952b2c"/>
+  <project groups="crosvm" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="80d01aa516ee1088a3def354448ebfbe2e226704"/>
+  <project groups="gfxstream" name="device/generic/vulkan-cereal" path="device/generic/vulkan-cereal" revision="6402a1b33d6924677e9b6051e243119011e8f823"/>
+</manifest>
