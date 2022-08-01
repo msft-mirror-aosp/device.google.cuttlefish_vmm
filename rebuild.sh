@@ -34,6 +34,7 @@ DEFINE_string docker_uid "${UID}" "Docker-container user ID"
 # GCE options
 
 DEFINE_boolean gce false "Build on a GCE instance"
+DEFINE_string gce_arch "$(uname -m)" "Target architecture"
 DEFINE_string gce_project "$(gcloud config get-value project)" "Project to use" "p"
 DEFINE_string gce_instance "${USER}-build" "Instance name to create for the build" "i"
 DEFINE_string gce_user cuttlefish_crosvm_builder "User name to use on GCE when doing the build"
@@ -158,6 +159,25 @@ build_locally_using_docker() {
 
 function build_on_gce() {
   check_common_docker_options
+  if [[ "${FLAGS_gce_arch}" != "${FLAGS_docker_arch}" ]]; then
+    echo Docker arch must match gce arch 1>&2
+    fail=1
+  fi
+  local _image_family=""
+  local _machine_type=""
+  case "${FLAGS_gce_arch}" in
+    aarch64)
+      _image_family=debian-11-arm64
+      _machine_type=t2a-standard
+      ;;
+    x86_64)
+      _image_family=debian-11
+      _machine_type=n1-standard
+      ;;
+    *) echo Invalid value ${FLAGS_gce_arch} for --gce_arch 1>&2
+      fail=1
+      ;;
+  esac
   if [[ -z "${FLAGS_gce_instance}" ]]; then
     echo Must specify instance 1>&2
     fail=1
@@ -193,7 +213,7 @@ function build_on_gce() {
       "${delete_instances[@]/%/-disk}" \
       "${project_zone_flags[@]}" \
       --image-project="debian-cloud" \
-      --image-family="debian-11"
+      --image-family="${_image_family}"
     gcloud compute images create \
       "${delete_instances[@]/%/-image}" \
       --source-disk "${delete_instances[@]/%/-disk}" \
@@ -203,7 +223,7 @@ function build_on_gce() {
       "${project_zone_flags[@]}" \
       --image "${delete_instances[@]/%/-image}" \
       --boot-disk-size=200GB \
-      --machine-type=n1-standard-"${FLAGS_gce_vcpus}" \
+      --machine-type="${_machine_type}-${FLAGS_gce_vcpus}" \
       --network-interface=nic-type=GVNIC
 
     wait_for_instance "${FLAGS_gce_instance}" "${project_zone_flags[@]}"
