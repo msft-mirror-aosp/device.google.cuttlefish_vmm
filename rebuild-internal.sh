@@ -208,6 +208,10 @@ compile_minijail() {
 
   cd "${SOURCE_DIR}/platform/minijail"
 
+  # Link minijail-sys rust crate dynamically to minijail
+  sed -i '/BUILD_STATIC_LIBS/d' rust/minijail-sys/build.rs
+  sed -i 's,static=minijail.pic,dylib=minijail,' rust/minijail-sys/build.rs
+
   make -j OUT="${WORKING_DIR}"
 
   cp "${WORKING_DIR}/libminijail.so" "${OUTPUT_LIB_DIR}"
