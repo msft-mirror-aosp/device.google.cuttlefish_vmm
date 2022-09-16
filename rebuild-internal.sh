@@ -212,6 +212,15 @@ compile_minijail() {
   sed -i '/BUILD_STATIC_LIBS/d' rust/minijail-sys/build.rs
   sed -i 's,static=minijail.pic,dylib=minijail,' rust/minijail-sys/build.rs
 
+  # Use Android prebuilt C files instead of generating them
+  sed -i 's,\(.*\.gen\.c: \),DISABLED_\1,' Makefile
+  cat >>Makefile <<EOF
+libconstants.gen.c: \$(SRC)/linux-x86/libconstants.gen.c
+	@cp \$< \$@
+libsyscalls.gen.c: \$(SRC)/linux-x86/libsyscalls.gen.c
+	@cp \$< \$@
+EOF
+
   make -j OUT="${WORKING_DIR}"
 
   cp "${WORKING_DIR}/libminijail.so" "${OUTPUT_LIB_DIR}"
