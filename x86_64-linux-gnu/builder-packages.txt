@@ -16,7 +16,7 @@ bsd-mailx	8.1.2-0.20180807cvs-1
 bsdmainutils	11.1.2+b1
 bsdutils	1:2.33.1-0.1
 build-essential	12.6
-bzip2	1.0.6-9.2~deb10u1
+bzip2	1.0.6-9.2~deb10u2
 ca-certificates	20200601~deb10u2
 cmake	3.18.4-2+deb11u1~bpo10+1
 cmake-data	3.18.4-2+deb11u1~bpo10+1
@@ -30,7 +30,7 @@ cross-config	2.6.15-3
 crossbuild-essential-arm64	12.6
 curl	7.64.0-4+deb10u3
 dash	0.5.10.2-5
-dbus	1.12.20-0+deb10u1
+dbus	1.12.24-0+deb10u1
 debconf	1.5.71+deb10u1
 debhelper	12.1.1
 debian-archive-keyring	2019.1+deb10u1
@@ -72,8 +72,8 @@ gcc-aarch64-linux-gnu	4:8.3.0-1
 gettext	0.19.8.1-9
 gettext-base	0.19.8.1-9
 gir1.2-glib-2.0:amd64	1.58.3-2
-git	1:2.20.1-2+deb10u3
-git-man	1:2.20.1-2+deb10u3
+git	1:2.20.1-2+deb10u4
+git-man	1:2.20.1-2+deb10u4
 gnupg	2.2.12-1+deb10u2
 gnupg-l10n	2.2.12-1+deb10u2
 gnupg-utils	2.2.12-1+deb10u2
@@ -118,12 +118,12 @@ libauthen-sasl-perl	2.1600-1
 libbinutils:amd64	2.31.1-16
 libblkid1:amd64	2.33.1-0.1
 libbsd0:amd64	0.9.1-2+deb10u1
-libbz2-1.0:amd64	1.0.6-9.2~deb10u1
-libc-bin	2.28-10+deb10u1
-libc-dev-bin	2.28-10+deb10u1
-libc6:amd64	2.28-10+deb10u1
+libbz2-1.0:amd64	1.0.6-9.2~deb10u2
+libc-bin	2.28-10+deb10u2
+libc-dev-bin	2.28-10+deb10u2
+libc6:amd64	2.28-10+deb10u2
 libc6-arm64-cross	2.28-7cross1
-libc6-dev:amd64	2.28-10+deb10u1
+libc6-dev:amd64	2.28-10+deb10u2
 libc6-dev-arm64-cross	2.28-7cross1
 libcap-dev:amd64	1:2.25-2
 libcap-ng0:amd64	0.7.9-2
@@ -139,7 +139,7 @@ libcurl3-gnutls:amd64	7.64.0-4+deb10u3
 libcurl4:amd64	7.64.0-4+deb10u3
 libdata-dump-perl	1.23-1
 libdb5.3:amd64	5.3.28+dfsg1-0.5
-libdbus-1-3:amd64	1.12.20-0+deb10u1
+libdbus-1-3:amd64	1.12.24-0+deb10u1
 libdebconfclient0:amd64	0.249
 libdebian-dpkgcross-perl	2.6.15-3
 libdevmapper1.02.1:amd64	2:1.02.155-3
@@ -160,8 +160,8 @@ libencode-locale-perl	1.05-1
 liberror-perl	0.17027-2
 libestr0:amd64	0.1.10-2.1
 libevent-2.1-6:amd64	2.1.8-stable-4
-libexpat1:amd64	2.2.6-2+deb10u4
-libexpat1-dev:amd64	2.2.6-2+deb10u4
+libexpat1:amd64	2.2.6-2+deb10u6
+libexpat1-dev:amd64	2.2.6-2+deb10u6
 libext2fs2:amd64	1.44.5-1+deb10u3
 libfakeroot:amd64	1.23-1
 libfastjson4:amd64	0.99.8-2
@@ -213,7 +213,7 @@ libhtml-parser-perl	3.72-3+b3
 libhtml-tagset-perl	3.20-3
 libhtml-tree-perl	5.07-2
 libhttp-cookies-perl	6.04-1
-libhttp-daemon-perl	6.01-3
+libhttp-daemon-perl	6.01-3+deb10u1
 libhttp-date-perl	6.02-1
 libhttp-message-perl	6.18-1
 libhttp-negotiate-perl	6.01-1
@@ -237,7 +237,7 @@ libkeyutils1:amd64	1.6-6
 libkmod2:amd64	26-1
 libkrb5-3:amd64	1.17-3+deb10u4
 libkrb5support0:amd64	1.17-3+deb10u4
-libksba8:amd64	1.3.5-2
+libksba8:amd64	1.3.5-2+deb10u1
 libldap-2.4-2:amd64	2.4.47+dfsg-3+deb10u7
 libldap-common	2.4.47+dfsg-3+deb10u7
 libllvm7:amd64	1:7.0.1-8+deb10u2
@@ -416,7 +416,7 @@ libyaml-0-2:amd64	0.2.1-1
 libyaml-libyaml-perl	0.76+repack-1
 libyaml-perl	1.27-1
 libzstd1:amd64	1.3.8+dfsg-3+deb10u2
-linux-libc-dev:amd64	4.19.249-2
+linux-libc-dev:amd64	4.19.260-1
 linux-libc-dev-arm64-cross	4.19.20-1cross1
 login	1:4.5-1.1
 logrotate	3.14.0-4
@@ -496,7 +496,7 @@ systemd	241-7~deb10u8
 systemd-sysv	241-7~deb10u8
 sysvinit-utils	2.93-8
 tar	1.30+dfsg-6
-tzdata	2021a-0+deb10u6
+tzdata	2021a-0+deb10u7
 ucf	3.0038+nmu1
 util-linux	2.33.1-0.1
 wayland-protocols	1.17-1

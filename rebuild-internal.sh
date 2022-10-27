@@ -221,6 +221,10 @@ libsyscalls.gen.c: \$(SRC)/linux-x86/libsyscalls.gen.c
 	@cp \$< \$@
 EOF
 
+  # Apply https://crrev.com/c/3989233
+  sed -i 's,\(#define __NR_rseq 293\),\1\n#endif,' gen_syscalls-inl.h
+  sed -i '$ d' gen_syscalls-inl.h
+
   make -j OUT="${WORKING_DIR}"
 
   cp "${WORKING_DIR}/libminijail.so" "${OUTPUT_LIB_DIR}"
