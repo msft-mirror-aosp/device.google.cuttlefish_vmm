@@ -61,3 +61,5 @@ openat: return ENOENT
 # 0x3B71: VFIO_IOMMU_MAP_DMA
 # 0x3B72: VFIO_IOMMU_UNMAP_DMA
 ioctl: arg1 == 0x3B71 || arg1 == 0x3B72
+clone3: 1
+rseq: 1

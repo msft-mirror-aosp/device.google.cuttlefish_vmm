@@ -69,3 +69,5 @@ prctl: arg0 == PR_SET_NAME
 socket: return EACCES
 stat: 1
 statx: 1
+clone3: 1
+rseq: 1

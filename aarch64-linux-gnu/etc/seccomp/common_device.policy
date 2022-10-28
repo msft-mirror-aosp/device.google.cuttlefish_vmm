@@ -50,3 +50,5 @@ write: 1
 writev: 1
 fcntl: 1
 uname: 1
+clone3: 1
+rseq: 1

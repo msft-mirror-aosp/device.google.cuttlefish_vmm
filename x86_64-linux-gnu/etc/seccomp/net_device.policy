@@ -59,3 +59,5 @@ ioctl: arg1 == 0x400454d0
 open: return ENOENT
 openat: return ENOENT
 prctl: arg0 == PR_SET_NAME
+clone3: 1
+rseq: 1

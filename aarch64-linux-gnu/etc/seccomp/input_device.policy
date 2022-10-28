@@ -56,3 +56,5 @@ ioctl: 1
 getsockname: 1
 openat: return ENOENT
 prctl: arg0 == PR_SET_NAME
+clone3: 1
+rseq: 1

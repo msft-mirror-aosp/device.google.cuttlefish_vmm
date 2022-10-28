@@ -74,3 +74,5 @@ ioctl: arg1 == 0xc0105500 || arg1 == 0x802c550a || arg1 == 0x8004551a || arg1 ==
 fstat: 1
 getrandom: 1
 lseek: 1
+clone3: 1
+rseq: 1

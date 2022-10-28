@@ -72,3 +72,5 @@ timerfd_create: 1
 timerfd_gettime: 1
 timerfd_settime: 1
 prctl: arg0 == PR_SET_NAME
+clone3: 1
+rseq: 1

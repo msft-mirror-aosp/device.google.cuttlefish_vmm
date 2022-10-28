@@ -67,3 +67,5 @@ openat: 1
 setpriority: 1
 socket: arg0 == AF_UNIX
 prctl: arg0 == PR_SET_NAME
+clone3: 1
+rseq: 1

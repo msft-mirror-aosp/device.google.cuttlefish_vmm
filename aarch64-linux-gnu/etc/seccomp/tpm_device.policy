@@ -65,3 +65,5 @@ openat: 1
 prctl: arg0 == PR_SET_NAME
 socket: return EACCES
 statx: 1
+clone3: 1
+rseq: 1

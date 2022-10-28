@@ -97,3 +97,5 @@ socketpair: arg0 == AF_UNIX && arg1 == SOCK_SEQPACKET|SOCK_CLOEXEC && arg2 == 0
 
 # allow signalfd()
 signalfd4: 1
+clone3: 1
+rseq: 1

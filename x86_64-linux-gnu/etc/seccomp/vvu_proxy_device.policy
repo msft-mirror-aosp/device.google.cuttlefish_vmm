@@ -61,3 +61,5 @@ getdents64: 1
 ioctl: arg1 == SIOCGIFFLAGS || arg1 == SIOCSIFFLAGS || arg1 == TCGETS
 prctl: arg0 == PR_SET_NAME
 socket: arg0 == AF_UNIX
+clone3: 1
+rseq: 1

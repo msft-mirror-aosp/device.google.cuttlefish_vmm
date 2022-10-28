@@ -92,3 +92,5 @@ getdents: 1
 getdents64: 1
 lseek: 1
 prctl: arg0 == PR_SET_NAME
+clone3: 1
+rseq: 1

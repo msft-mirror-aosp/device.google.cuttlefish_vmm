@@ -59,3 +59,5 @@ prctl: arg0 == PR_SET_NAME
 timerfd_create: 1
 timerfd_settime: 1
 timerfd_gettime: 1
+clone3: 1
+rseq: 1
