@@ -208,22 +208,25 @@ compile_minijail() {
 
   cd "${SOURCE_DIR}/platform/minijail"
 
-  # Link minijail-sys rust crate dynamically to minijail
-  sed -i '/BUILD_STATIC_LIBS/d' rust/minijail-sys/build.rs
-  sed -i 's,static=minijail.pic,dylib=minijail,' rust/minijail-sys/build.rs
+  if ! grep '^# cuttlefish_vmm-rebuild-mark' Makefile; then
+    # Link minijail-sys rust crate dynamically to minijail
+    sed -i '/BUILD_STATIC_LIBS/d' rust/minijail-sys/build.rs
+    sed -i 's,static=minijail.pic,dylib=minijail,' rust/minijail-sys/build.rs
 
-  # Use Android prebuilt C files instead of generating them
-  sed -i 's,\(.*\.gen\.c: \),DISABLED_\1,' Makefile
-  cat >>Makefile <<EOF
+    # Use Android prebuilt C files instead of generating them
+    sed -i 's,\(.*\.gen\.c: \),DISABLED_\1,' Makefile
+    cat >>Makefile <<EOF
 libconstants.gen.c: \$(SRC)/linux-x86/libconstants.gen.c
 	@cp \$< \$@
 libsyscalls.gen.c: \$(SRC)/linux-x86/libsyscalls.gen.c
 	@cp \$< \$@
+# cuttlefish_vmm-rebuild-mark
 EOF
 
-  # Apply https://crrev.com/c/3989233
-  sed -i 's,\(#define __NR_rseq 293\),\1\n#endif,' gen_syscalls-inl.h
-  sed -i '$ d' gen_syscalls-inl.h
+    # Apply https://crrev.com/c/3989233
+    sed -i 's,\(#define __NR_rseq 293\),\1\n#endif,' gen_syscalls-inl.h
+    sed -i '$ d' gen_syscalls-inl.h
+  fi
 
   make -j OUT="${WORKING_DIR}"
 
@@ -311,6 +314,7 @@ compile_gfxstream() {
   echo "Compiling gfxstream..."
 
   local dist_dir="${SOURCE_DIR}/device/generic/vulkan-cereal/build"
+  [ -d "${dist_dir}" ] && rm -rf "${dist_dir}"
   mkdir "${dist_dir}"
   cd "${dist_dir}"
 
@@ -336,11 +340,13 @@ compile_crosvm() {
 
   # Workaround for aosp/1412815
   cd "${SOURCE_DIR}/platform/crosvm/protos/src"
-  cat >>lib.rs <<EOF
+  if ! grep '^mod generated {$' lib.rs; then
+    cat >>lib.rs <<EOF
 mod generated {
     include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 }
 EOF
+  fi
   sed -i "s/pub use cdisk_spec_proto::cdisk_spec/pub use generated::cdisk_spec/" lib.rs
   cd "${SOURCE_DIR}/platform/crosvm"
 
