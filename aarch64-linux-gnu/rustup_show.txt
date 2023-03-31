@@ -1,5 +1,5 @@
 Default host: aarch64-unknown-linux-gnu
 rustup home:  /home/cuttlefish_crosvm_builder/.rustup
 
-1.62.0-aarch64-unknown-linux-gnu (overridden by '/source/platform/crosvm/rust-toolchain')
-rustc 1.62.0 (a8314ef7d 2022-06-27)
+1.65.0-aarch64-unknown-linux-gnu (overridden by '/source/platform/crosvm/rust-toolchain')
+rustc 1.65.0 (897e37553 2022-11-02)

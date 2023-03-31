@@ -1,1 +1,1 @@
-sourceImage: https://www.googleapis.com/compute/v1/projects/cloud-android-testing-356121/global/images/adelva-build-image
+sourceImage: https://www.googleapis.com/compute/v1/projects/google.com:android-treehugger-developer/global/images/jemoreira-build-image
