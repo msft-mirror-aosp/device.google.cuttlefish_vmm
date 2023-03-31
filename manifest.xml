@@ -11,5 +11,7 @@
   <project groups="crosvm" name="platform/external/minigbm" path="third_party/minigbm" revision="6a8f9d534b9047e915c63f38340c8d49641872b8"/>
   <project groups="crosvm" name="platform/external/minijail" path="platform/minijail" revision="d4fb6c2f82a4445bcf48e697023a6d9dc07d4db3"/>
   <project groups="crosvm" name="platform/external/virglrenderer" path="third_party/virglrenderer" revision="80d01aa516ee1088a3def354448ebfbe2e226704"/>
+  <project groups="crosvm" name="platform/external/wayland" path="third_party/wayland" revision="efeff42250a561f3f280f232762a289585b4f5e0"/>
+  <project groups="crosvm" name="platform/external/libffi" path="third_party/libffi" revision="a8011b453bea48ac68b8c37545b4f04aaf6a9ffc"/>
   <project groups="gfxstream" name="device/generic/vulkan-cereal" path="device/generic/vulkan-cereal" revision="6402a1b33d6924677e9b6051e243119011e8f823"/>
 </manifest>

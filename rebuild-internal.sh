@@ -8,7 +8,7 @@
 
 # Stable is usually too old for crosvm, but make sure you bump this
 # up as far as you can each time this script is touched..
-RUST_TOOLCHAIN_VER=1.62.0
+RUST_TOOLCHAIN_VER=1.65.0
 
 setup_env() {
   : ${SOURCE_DIR:="$(pwd)/source"}
@@ -84,9 +84,11 @@ install_packages() {
       build-essential \
       "$@" \
       curl \
+      doxygen \
       gcc \
       g++ \
       git \
+      graphviz \
       libcap-dev \
       libfdt-dev \
       libegl1-mesa-dev \
@@ -98,6 +100,7 @@ install_packages() {
       libusb-1.0-0-dev \
       libwayland-bin \
       libwayland-dev \
+      libxml2-dev \
       make \
       nasm \
       ninja-build \
@@ -106,7 +109,9 @@ install_packages() {
       python \
       python3 \
       python3-pip \
+      texinfo \
       wayland-protocols \
+      xmlto \
       xutils-dev # Needed to pacify autogen.sh for libepoxy
   sudo apt-get install -y -t buster-backports \
       cmake
@@ -310,6 +315,32 @@ compile_virglrenderer() {
   ln -s -f "libvirglrenderer.so.1" "libvirglrenderer.so"
 }
 
+compile_libffi() {
+  cd "${SOURCE_DIR}/third_party/libffi"
+
+  ./autogen.sh
+  ./configure \
+    --prefix="${WORKING_DIR}/usr" \
+    --libdir="${WORKING_DIR}/usr/lib"
+  make && make check && make install
+
+  cp -a "${WORKING_DIR}"/usr/lib/libffi.so* "${OUTPUT_LIB_DIR}"/
+}
+
+compile_wayland() {
+  cd "${SOURCE_DIR}/third_party/wayland"
+
+  # Need to figure out the right way to pass this down...
+  sed -i "s|install: true\$|install: true, install_rpath : '\$ORIGIN',|" src/meson.build
+
+  meson build \
+    --libdir="${WORKING_DIR}/usr/lib" \
+    --prefix="${WORKING_DIR}/usr"
+  ninja -C build/ install
+
+  cp -a "${WORKING_DIR}"/usr/lib/libwayland-client.so* "${OUTPUT_LIB_DIR}"/
+}
+
 compile_gfxstream() {
   echo "Compiling gfxstream..."
 
@@ -405,6 +436,8 @@ compile() {
       compile_minigbm
       compile_epoxy
       compile_virglrenderer
+      compile_libffi # wayland depends on it
+      compile_wayland
   fi
 
   # TODO: Finish the aarch64 cross/native gfxstream build
