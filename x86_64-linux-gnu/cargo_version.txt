@@ -1,8 +1,8 @@
-cargo 1.62.0 (a748cf5a3 2022-06-08)
-release: 1.62.0
-commit-hash: a748cf5a3e666bc2dcdf54f37adef8ef22196452
-commit-date: 2022-06-08
+cargo 1.65.0 (4bc8f24d3 2022-10-20)
+release: 1.65.0
+commit-hash: 4bc8f24d3e899462e43621aab981f6383a370365
+commit-date: 2022-10-20
 host: x86_64-unknown-linux-gnu
-libgit2: 1.4.2 (sys:0.14.2 vendored)
-libcurl: 7.80.0-DEV (sys:0.4.51+curl-7.80.0 vendored ssl:OpenSSL/1.1.1n)
-os: OracleLinux 10.0.0 [64-bit]
+libgit2: 1.5.0 (sys:0.15.0 vendored)
+libcurl: 7.83.1-DEV (sys:0.4.55+curl-7.83.1 vendored ssl:OpenSSL/1.1.1q)
+os: Debian 10 (buster) [64-bit]

@@ -115,3 +115,17 @@ cc_prebuilt_binary {
   relative_install_path: "x86_64-linux-gnu",
   defaults: ["cuttlefish_host"],
 }
+cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libffi.so.7_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libffi.so.7"],
+  stem: "libffi.so.7",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host"],
+}
+cc_prebuilt_binary {
+  name: "x86_64_linux_gnu_libwayland-client.so.0_for_crosvm",
+  srcs: ["x86_64-linux-gnu/bin/libwayland-client.so.0"],
+  stem: "libwayland-client.so.0",
+  relative_install_path: "x86_64-linux-gnu",
+  defaults: ["cuttlefish_host"],
+}
