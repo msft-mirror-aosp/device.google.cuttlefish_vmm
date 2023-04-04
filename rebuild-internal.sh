@@ -417,7 +417,19 @@ compile_crosvm_seccomp() {
       echo "${ARCH} is not supported"
       exit 15
   esac
+
   policy-inliner.sh -p $(pwd)/seccomp/$subdir -o ${OUTPUT_SECCOMP_DIR}
+
+  # The following check fails because the source is owned by a different user
+  git config --global --add safe.directory '*'
+  # This version of crosvm is missing some sepolicy configuration
+  if git log --oneline -n 1 | grep -qv ^6f1122f; then
+    return 0
+  fi
+  for policy_file in "${OUTPUT_SECCOMP_DIR}/"*.policy; do
+    grep -q clone3 "$policy_file" || echo -e "clone3: 1\nrseq: 1" >>"$policy_file"
+  done
+  echo "statx: 1" >>"${OUTPUT_SECCOMP_DIR}/vios_audio_device.policy"
 }
 
 compile() {
